@@ -33,10 +33,10 @@ installed.
 ## Deploying to GitHub Pages
 
 This repo includes a GitHub Actions workflow
-(`.github/workflows/deploy-pages.yml`) that publishes the site to GitHub
-Pages on every push to `main`. Enable it by going to
-**Settings → Pages → Build and deployment → Source** and selecting
-**GitHub Actions**. Alternatively, you can use the classic
+(`.github/workflows/static.yml`) that publishes the site to GitHub Pages on
+every push to `main`. Make sure **Settings → Pages → Build and
+deployment → Source** is set to **GitHub Actions** (this is the default
+once the workflow has run once). Alternatively, you can use the classic
 **Deploy from a branch** option pointed at `main` / `/ (root)`, since the
 site is fully static.
 
