@@ -19,12 +19,8 @@ const els = {
 
 const wallet = new Wallet({
   onAccountChanged: (address) => {
-    if (!address) {
-      updateWalletUI();
-      return;
-    }
     updateWalletUI();
-    refreshBalance();
+    if (address) refreshBalance();
   },
   onChainChanged: () => {
     wallet.connect().then(updateWalletUI).catch(() => {});

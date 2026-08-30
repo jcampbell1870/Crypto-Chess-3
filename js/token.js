@@ -41,6 +41,13 @@ export class Token {
 
   // Attempts each candidate claim function in order until one succeeds.
   // Returns the transaction hash on success.
+  //
+  // Note: the ERC20_ABI claim entries have no state-mutability modifier, so
+  // ethers treats them as "nonpayable" (state-changing) functions. Calling
+  // them through a signer-connected contract therefore sends a transaction
+  // and returns a TransactionResponse (which has `.wait()`), regardless of
+  // their declared `returns (bool)` output — ethers only decodes a return
+  // value in place for `view`/`pure` functions.
   async claimPlayReward() {
     const contract = await this.#getContract(true);
     let lastError = null;

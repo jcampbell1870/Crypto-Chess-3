@@ -33,6 +33,8 @@ export class Wallet {
       );
     }
 
+    // Vendored js/vendor/ethers.esm.min.js is ethers v5.7.2, hence the
+    // v5 provider/utils API used here and in token.js.
     const { ethers } = await import('./vendor/ethers.esm.min.js');
     this.provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
 

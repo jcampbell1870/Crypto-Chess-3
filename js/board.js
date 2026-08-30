@@ -72,9 +72,26 @@ export class Board {
       .map((m) => m.to);
   }
 
+  #isPromotion(from, to) {
+    const piece = this.game.get(from);
+    if (!piece || piece.type !== 'p') return false;
+    const targetRank = to[1];
+    return (piece.color === 'w' && targetRank === '8') || (piece.color === 'b' && targetRank === '1');
+  }
+
+  #promptPromotionPiece() {
+    const choice = window.prompt('Promote pawn to (q)ueen, (r)ook, (b)ishop, or (n)ight?', 'q');
+    const normalized = (choice || '').trim().toLowerCase().charAt(0);
+    return ['q', 'r', 'b', 'n'].includes(normalized) ? normalized : 'q';
+  }
+
   #makeMove(from, to) {
-    // Auto-queen for pawn promotion; a full UI could prompt for the piece.
-    const move = this.game.move({ from, to, promotion: 'q' });
+    const moveOptions = { from, to };
+    if (this.#isPromotion(from, to)) {
+      moveOptions.promotion = this.#promptPromotionPiece();
+    }
+
+    const move = this.game.move(moveOptions);
     if (!move) return;
 
     this.onMove(move);
