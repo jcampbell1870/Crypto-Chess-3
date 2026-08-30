@@ -46,6 +46,13 @@ export class Token {
     let lastSimulationError = null;
 
     for (const fnName of CONFIG.claimFunctionCandidates) {
+      if (
+        typeof contract[fnName] !== 'function' ||
+        typeof contract.callStatic[fnName] !== 'function'
+      ) {
+        continue;
+      }
+
       try {
         await contract.callStatic[fnName]();
       } catch (error) {
