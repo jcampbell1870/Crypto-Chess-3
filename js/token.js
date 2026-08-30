@@ -39,34 +39,36 @@ export class Token {
     return ethers.utils.formatUnits(raw, this.decimals);
   }
 
-  // Attempts each candidate claim function in order until one succeeds.
-  // Returns the transaction hash on success.
-  //
-  // Note: the ERC20_ABI claim entries have no state-mutability modifier, so
-  // ethers treats them as "nonpayable" (state-changing) functions. Calling
-  // them through a signer-connected contract therefore sends a transaction
-  // and returns a TransactionResponse (which has `.wait()`), regardless of
-  // their declared `returns (bool)` output — ethers only decodes a return
-  // value in place for `view`/`pure` functions.
+  // Simulates each candidate before asking the wallet to submit a transaction.
+  // This avoids charging players gas for unsupported or unavailable claims.
   async claimPlayReward() {
     const contract = await this.#getContract(true);
-    let lastError = null;
+    let lastSimulationError = null;
 
     for (const fnName of CONFIG.claimFunctionCandidates) {
-      if (typeof contract[fnName] !== 'function') continue;
+      try {
+        await contract.callStatic[fnName]();
+      } catch (error) {
+        lastSimulationError = error;
+        continue;
+      }
+
       try {
         const tx = await contract[fnName]();
         const receipt = await tx.wait();
         return receipt.transactionHash;
       } catch (error) {
-        lastError = error;
+        throw new Error(
+          `The Arcade1870 contract rejected the reward claim: ${error.reason || error.message}`
+        );
       }
     }
 
+    const reason = lastSimulationError?.reason;
     throw new Error(
-      lastError
-        ? `The Arcade1870 contract rejected the reward claim: ${lastError.reason || lastError.message}`
-        : 'The Arcade1870 contract does not currently support claiming a reward directly. Please check back later.'
+      reason
+        ? `The Arcade1870 reward claim is unavailable: ${reason}`
+        : 'The Arcade1870 contract does not currently expose an available self-serve reward claim. No transaction was sent; contact the Arcade1870 project for reward details.'
     );
   }
 }
