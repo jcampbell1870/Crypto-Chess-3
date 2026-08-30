@@ -117,8 +117,11 @@ const board = new Board(els.board, {
 
 els.newGameBtn.addEventListener('click', () => {
   board.reset();
+  rewardEligible = false;
   els.turnStatus.textContent = 'White to move';
   els.gameStatus.textContent = '';
+  els.claimStatus.textContent = '';
+  updateWalletUI();
 });
 
 // Initial UI state.
