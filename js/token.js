@@ -1,4 +1,4 @@
-import { CONFIG, ERC20_ABI } from './config.js';
+import { CONFIG, ERC20_ABI, REWARD_VAULT_ABI } from './config.js';
 
 // Handles reading Arcade1870 (ARC) token info/balances and attempting to
 // claim the "play to earn" reward from the connected wallet.
@@ -13,6 +13,10 @@ export class Token {
     const { ethers } = await import('./vendor/ethers.esm.min.js');
     const providerOrSigner = withSigner ? this.wallet.signer : this.wallet.provider;
     return new ethers.Contract(CONFIG.tokenAddress, ERC20_ABI, providerOrSigner);
+  }
+
+  isRewardVaultConfigured() {
+    return Boolean(CONFIG.rewardVaultAddress && CONFIG.rewardIssuerUrl);
   }
 
   async loadMetadata() {
@@ -39,43 +43,54 @@ export class Token {
     return ethers.utils.formatUnits(raw, this.decimals);
   }
 
-  // Simulates each candidate before asking the wallet to submit a transaction.
-  // This avoids charging players gas for unsupported or unavailable claims.
   async claimPlayReward() {
-    const contract = await this.#getContract(true);
-    let lastSimulationError = null;
-
-    for (const fnName of CONFIG.claimFunctionCandidates) {
-      if (
-        typeof contract[fnName] !== 'function' ||
-        typeof contract.callStatic[fnName] !== 'function'
-      ) {
-        continue;
-      }
-
-      try {
-        await contract.callStatic[fnName]();
-      } catch (error) {
-        lastSimulationError = error;
-        continue;
-      }
-
-      try {
-        const tx = await contract[fnName]();
-        const receipt = await tx.wait();
-        return receipt.transactionHash;
-      } catch (error) {
-        throw new Error(
-          `The Arcade1870 contract rejected the reward claim: ${error.reason || error.message}`
-        );
-      }
+    if (!this.isRewardVaultConfigured()) {
+      throw new Error('Reward vault setup is incomplete. Configure its address and issuer URL.');
     }
 
-    const reason = lastSimulationError?.reason;
-    throw new Error(
-      reason
-        ? `The Arcade1870 reward claim is unavailable: ${reason}`
-        : 'The Arcade1870 contract does not currently expose an available self-serve reward claim. No transaction was sent; contact the Arcade1870 project for reward details.'
+    const issuerUrl = new URL(CONFIG.rewardIssuerUrl);
+    if (issuerUrl.protocol !== 'https:') {
+      throw new Error('The reward issuer must use HTTPS.');
+    }
+
+    const response = await fetch(issuerUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recipient: this.wallet.address }),
+    });
+    if (!response.ok) {
+      throw new Error('The reward issuer could not authorize this completed game.');
+    }
+
+    const claim = await response.json();
+    const { ethers } = await import('./vendor/ethers.esm.min.js');
+    let amount;
+    let nonce;
+    let deadline;
+    try {
+      amount = ethers.BigNumber.from(claim.amount);
+      nonce = ethers.BigNumber.from(claim.nonce);
+      deadline = ethers.BigNumber.from(claim.deadline);
+    } catch {
+      throw new Error('The reward issuer returned an invalid or expired claim.');
+    }
+    if (
+      !ethers.utils.isAddress(CONFIG.rewardVaultAddress) ||
+      !ethers.utils.isHexString(claim.signature, 65) ||
+      amount.isZero() ||
+      deadline.lte(Math.floor(Date.now() / 1000))
+    ) {
+      throw new Error('The reward issuer returned an invalid or expired claim.');
+    }
+
+    const vault = new ethers.Contract(
+      CONFIG.rewardVaultAddress,
+      REWARD_VAULT_ABI,
+      this.wallet.signer
     );
+    await vault.callStatic.claim(amount, nonce, deadline, claim.signature);
+    const tx = await vault.claim(amount, nonce, deadline, claim.signature);
+    const receipt = await tx.wait();
+    return receipt.transactionHash;
   }
 }

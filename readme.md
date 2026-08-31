@@ -70,9 +70,13 @@ a game, and an unrestricted public faucet would be immediately drainable.
    `Claim(address recipient,uint256 amount,uint256 nonce,uint256 deadline)`.
    The EIP-712 domain must be named `Arcade1870RewardVault`, use version `1`,
    the deployment chain ID, and the vault address.
-4. Configure the website to request that signature from the issuer and submit
-   it to `claim(amount, nonce, deadline, signature)`. Players pay the gas for
-   this transaction and receive ARC directly in their connected wallet.
+4. Set `rewardVaultAddress` and the HTTPS `rewardIssuerUrl` in
+   [`js/config.js`](js/config.js). The issuer receives
+   `{ "recipient": "<connected MetaMask address>" }` and must return JSON with
+   `amount`, `nonce`, `deadline`, and a 65-byte `signature`. The game
+   simulates the vault claim before showing MetaMask, then submits
+   `claim(amount, nonce, deadline, signature)`. Players pay the gas and
+   receive ARC directly in their connected wallet.
 
 The owner can rotate a compromised reward signer and recover unallocated
 tokens. Ownership transfer requires the nominated new owner to call
