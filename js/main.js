@@ -39,7 +39,7 @@ function updateWalletUI() {
 
     const onExpectedNetwork = wallet.isOnExpectedNetwork();
     els.networkWarning.hidden = onExpectedNetwork;
-    els.claimBtn.disabled = !onExpectedNetwork || !rewardEligible;
+    els.claimBtn.disabled = !onExpectedNetwork || !rewardEligible || !token.isRewardVaultConfigured();
   } else {
     els.connectBtn.textContent = 'Connect MetaMask';
     els.connectBtn.disabled = false;
@@ -106,10 +106,12 @@ const board = new Board(els.board, {
     els.gameStatus.textContent = reason;
     els.turnStatus.textContent = 'Game over';
     rewardEligible = true;
-    if (wallet.isConnected() && wallet.isOnExpectedNetwork()) {
+    if (wallet.isConnected() && wallet.isOnExpectedNetwork() && token.isRewardVaultConfigured()) {
       els.claimBtn.disabled = false;
     }
-    els.claimStatus.textContent = wallet.isConnected()
+    els.claimStatus.textContent = !token.isRewardVaultConfigured()
+      ? 'Reward vault setup is pending. The owner must configure its deployed address and secure issuer URL.'
+      : wallet.isConnected()
       ? 'You earned an Arcade1870 reward for playing — claim it below!'
       : 'Connect your wallet to claim your Arcade1870 reward for playing!';
   },
@@ -117,11 +119,16 @@ const board = new Board(els.board, {
 
 els.newGameBtn.addEventListener('click', () => {
   board.reset();
+  rewardEligible = false;
   els.turnStatus.textContent = 'White to move';
   els.gameStatus.textContent = '';
+  els.claimStatus.textContent = '';
+  updateWalletUI();
 });
 
 // Initial UI state.
 updateWalletUI();
 els.turnStatus.textContent = 'White to move';
 document.getElementById('token-address').textContent = CONFIG.tokenAddress;
+document.getElementById('reward-vault-address').textContent =
+  CONFIG.rewardVaultAddress || 'Not configured';
