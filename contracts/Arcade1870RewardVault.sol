@@ -23,7 +23,7 @@ contract Arcade1870RewardVault {
         keccak256("Claim(address recipient,uint256 amount,uint256 nonce,uint256 deadline)");
     bytes32 private constant NAME_HASH = keccak256("Arcade1870RewardVault");
     bytes32 private constant VERSION_HASH = keccak256("1");
-    bytes32 private constant SECP256K1N_DIV_2 =
+    uint256 private constant SECP256K1N_DIV_2 =
         0x7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a0;
 
     IERC20 public immutable rewardToken;
@@ -134,7 +134,7 @@ contract Arcade1870RewardVault {
             v := byte(0, calldataload(add(signature.offset, 64)))
         }
 
-        if (uint256(s) > uint256(SECP256K1N_DIV_2) || (v != 27 && v != 28)) {
+        if (uint256(s) > SECP256K1N_DIV_2 || (v != 27 && v != 28)) {
             return address(0);
         }
         return ecrecover(digest, v, r, s);

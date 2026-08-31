@@ -79,3 +79,5 @@ tokens. Ownership transfer requires the nominated new owner to call
 `acceptOwnership`, preventing loss from a mistyped address. Secure both
 private keys with a hardware wallet or key-management service. The vault
 deliberately rejects expired, replayed, zero-amount, and unauthorized claims.
+As with any custodial reward pool, the owner can recover ARC from the vault;
+only fund a deployment controlled by an owner you trust.
