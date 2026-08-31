@@ -14,6 +14,7 @@ contract Arcade1870RewardVault {
     error ClaimExpired();
     error ClaimAlreadyUsed();
     error InvalidSignature();
+    error InvalidToken();
     error TokenTransferFailed();
 
     bytes32 private constant EIP712_DOMAIN_TYPEHASH =
@@ -27,16 +28,19 @@ contract Arcade1870RewardVault {
 
     IERC20 public immutable rewardToken;
     address public owner;
+    address public pendingOwner;
     address public rewardSigner;
     mapping(address recipient => mapping(uint256 nonce => bool)) public claimed;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event OwnershipTransferStarted(address indexed currentOwner, address indexed pendingOwner);
     event RewardSignerUpdated(address indexed previousSigner, address indexed newSigner);
     event RewardClaimed(address indexed recipient, uint256 amount, uint256 indexed nonce);
     event TokensRecovered(address indexed token, address indexed recipient, uint256 amount);
 
     constructor(address rewardToken_, address rewardSigner_) {
         if (rewardToken_ == address(0) || rewardSigner_ == address(0)) revert ZeroAddress();
+        if (rewardToken_.code.length == 0) revert InvalidToken();
         rewardToken = IERC20(rewardToken_);
         owner = msg.sender;
         rewardSigner = rewardSigner_;
@@ -90,8 +94,15 @@ contract Arcade1870RewardVault {
 
     function transferOwnership(address newOwner) external onlyOwner {
         if (newOwner == address(0)) revert ZeroAddress();
-        emit OwnershipTransferred(owner, newOwner);
-        owner = newOwner;
+        pendingOwner = newOwner;
+        emit OwnershipTransferStarted(owner, newOwner);
+    }
+
+    function acceptOwnership() external {
+        if (msg.sender != pendingOwner) revert Unauthorized();
+        emit OwnershipTransferred(owner, pendingOwner);
+        owner = pendingOwner;
+        pendingOwner = address(0);
     }
 
     /// @notice Recover tokens accidentally sent to the vault or remove unallocated vault funds.
@@ -102,6 +113,7 @@ contract Arcade1870RewardVault {
     }
 
     function _safeTransfer(address token, address recipient, uint256 amount) private {
+        if (token.code.length == 0) revert InvalidToken();
         (bool success, bytes memory returnData) = token.call(
             abi.encodeCall(IERC20.transfer, (recipient, amount))
         );

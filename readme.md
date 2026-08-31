@@ -75,6 +75,7 @@ a game, and an unrestricted public faucet would be immediately drainable.
    this transaction and receive ARC directly in their connected wallet.
 
 The owner can rotate a compromised reward signer and recover unallocated
-tokens. Secure both private keys with a hardware wallet or key-management
-service. The vault deliberately rejects expired, replayed, zero-amount, and
-unauthorized claims.
+tokens. Ownership transfer requires the nominated new owner to call
+`acceptOwnership`, preventing loss from a mistyped address. Secure both
+private keys with a hardware wallet or key-management service. The vault
+deliberately rejects expired, replayed, zero-amount, and unauthorized claims.
