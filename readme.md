@@ -40,13 +40,15 @@ once the workflow has run once). Alternatively, you can use the classic
 **Deploy from a branch** option pointed at `main` / `/ (root)`, since the
 site is fully static.
 
-The repository includes a `CNAME` file for `cryptochess.ca`. In **Settings →
-Pages**, enter `cryptochess.ca` as the custom domain and enable **Enforce
-HTTPS** after DNS is configured. At the domain registrar, point the apex
-domain to GitHub Pages' four documented A records and point `www` to
-`jcampbell1870.github.io`; remove any conflicting parking or forwarding
-records. DNS and certificate provisioning must be completed in GitHub and
-Squarespace/Google Domains; they cannot be performed by this repository.
+The repository includes a `CNAME` file for `www.cryptochess.org`. In
+**Settings → Pages**, enter `www.cryptochess.org` as the custom domain and
+enable **Enforce HTTPS** after DNS is configured. In Cloudflare DNS, set a
+`www` CNAME to `jcampbell1870.github.io` and configure the apex
+`cryptochess.org` to redirect to `https://www.cryptochess.org`; remove
+conflicting parking or forwarding records. Set Cloudflare SSL/TLS mode to
+**Full** or **Full (strict)**. DNS, redirect, and certificate provisioning
+must be completed in GitHub and Cloudflare; they cannot be performed by this
+repository.
 
 ## Arcade1870 (ARC) token reward vault
 
@@ -107,8 +109,8 @@ npm install
 npm start
 ```
 
-Put the service behind an HTTPS reverse proxy and set `ALLOWED_ORIGIN` to the
-Pages origin. The issuer endpoint is `https://<your-domain>/claim` and accepts
+Put the service behind an HTTPS reverse proxy and set `ALLOWED_ORIGIN` to `https://www.cryptochess.org`. The issuer endpoint is
+`https://api.cryptochess.org/claim` once that hostname is deployed and accepts
 `{ "recipient": "...", "gameProof": "<64-hex-character HMAC>" }`. A trusted
 game-verification service must issue that HMAC only after validating a
 completed game. Set the resulting public HTTPS URL and deployed vault address
