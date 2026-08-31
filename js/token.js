@@ -72,7 +72,7 @@ export class Token {
       nonce = ethers.BigNumber.from(claim.nonce);
       deadline = ethers.BigNumber.from(claim.deadline);
     } catch {
-      throw new Error('The reward issuer returned an invalid or expired claim.');
+      throw new Error('The reward issuer returned a malformed claim.');
     }
     if (
       !ethers.utils.isAddress(CONFIG.rewardVaultAddress) ||
