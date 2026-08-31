@@ -40,6 +40,14 @@ once the workflow has run once). Alternatively, you can use the classic
 **Deploy from a branch** option pointed at `main` / `/ (root)`, since the
 site is fully static.
 
+The repository includes a `CNAME` file for `cryptochess.ca`. In **Settings →
+Pages**, enter `cryptochess.ca` as the custom domain and enable **Enforce
+HTTPS** after DNS is configured. At the domain registrar, point the apex
+domain to GitHub Pages' four documented A records and point `www` to
+`jcampbell1870.github.io`; remove any conflicting parking or forwarding
+records. DNS and certificate provisioning must be completed in GitHub and
+Squarespace/Google Domains; they cannot be performed by this repository.
+
 ## Arcade1870 (ARC) token reward vault
 
 The Arcade1870 token contract address is configured in
