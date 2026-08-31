@@ -17,7 +17,7 @@ if (!signerKey || !vaultAddress || !rewardAmount || !verificationSecret) {
     'REWARD_SIGNER_PRIVATE_KEY, REWARD_VAULT_ADDRESS, REWARD_AMOUNT, and GAME_VERIFICATION_SECRET are required'
   );
 }
-if (!ethers.utils.isAddress(vaultAddress)) throw new Error('REWARD_VAULT_ADDRESS is invalid');
+if (!ethers.isAddress(vaultAddress)) throw new Error('REWARD_VAULT_ADDRESS is invalid');
 const signer = new ethers.Wallet(signerKey);
 const usedNonces = new Set();
 
@@ -62,7 +62,7 @@ const server = http.createServer((request, response) => {
     try {
       const body = JSON.parse(raw);
       const recipient = body.recipient;
-      if (!ethers.utils.isAddress(recipient) || !validProof(recipient, body.gameProof)) {
+      if (!ethers.isAddress(recipient) || !validProof(recipient, body.gameProof)) {
         return send(response, 403, { error: 'A valid completed-game proof is required' });
       }
 
@@ -84,7 +84,7 @@ const server = http.createServer((request, response) => {
           { name: 'deadline', type: 'uint256' },
         ],
       };
-      const signature = await signer._signTypedData(domain, types, {
+      const signature = await signer.signTypedData(domain, types, {
         recipient,
         amount: rewardAmount,
         nonce,
