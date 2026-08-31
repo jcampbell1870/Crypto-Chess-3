@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: crypto-chess-reward-issuer
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: "8787"
+      - key: HOST
+        value: "0.0.0.0"
+      - key: ALLOWED_ORIGIN
+        value: https://www.cryptochess.org
+      - key: CHAIN_ID
+        value: "1"
+      - key: REWARD_VAULT_ADDRESS
+        sync: false
+      - key: REWARD_AMOUNT
+        sync: false
+      - key: REWARD_SIGNER_PRIVATE_KEY
+        sync: false
+      - key: GAME_VERIFICATION_SECRET
+        generateValue: true

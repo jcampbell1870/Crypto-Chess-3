@@ -109,6 +109,13 @@ npm install
 npm start
 ```
 
+For Render, create a Blueprint from this repository; `render.yaml` sets the
+backend root directory, Node runtime, build command, start command, and public
+origin. Enter the deployed vault address, reward amount, and dedicated signer
+key as protected environment variables in the Render dashboard. Render
+provides the service hostname; add `api.cryptochess.org` as a custom domain
+there, then create a Cloudflare `api` CNAME pointing to that hostname.
+
 Put the service behind an HTTPS reverse proxy and set `ALLOWED_ORIGIN` to `https://www.cryptochess.org`. The issuer endpoint is
 `https://api.cryptochess.org/claim` once that hostname is deployed and accepts
 `{ "recipient": "...", "gameProof": "<64-hex-character HMAC>" }`. A trusted
