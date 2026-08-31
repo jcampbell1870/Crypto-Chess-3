@@ -78,7 +78,7 @@ export class Token {
       !ethers.utils.isAddress(CONFIG.rewardVaultAddress) ||
       !ethers.utils.isHexString(claim.signature, 65) ||
       amount.isZero() ||
-      deadline.lte(Math.floor(Date.now() / 1000))
+      deadline.lt(Math.floor(Date.now() / 1000))
     ) {
       throw new Error('The reward issuer returned an invalid or expired claim.');
     }

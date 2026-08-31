@@ -106,6 +106,7 @@ contract Arcade1870RewardVault {
     }
 
     /// @notice Recover tokens accidentally sent to the vault or remove unallocated vault funds.
+    /// @dev Recovery includes rewardToken, so the owner remains responsible for honoring issued claims.
     function recoverTokens(address token, address recipient, uint256 amount) external onlyOwner {
         if (recipient == address(0)) revert ZeroAddress();
         _safeTransfer(token, recipient, amount);
