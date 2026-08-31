@@ -40,7 +40,7 @@ once the workflow has run once). Alternatively, you can use the classic
 **Deploy from a branch** option pointed at `main` / `/ (root)`, since the
 site is fully static.
 
-## Arcade1870 (ARC) token reward
+## Arcade1870 (ARC) token reward vault
 
 The Arcade1870 token contract address is configured in
 [`js/config.js`](js/config.js):
@@ -49,14 +49,32 @@ The Arcade1870 token contract address is configured in
 0x8eddD4edea39c5B5f77662453600F53A202EE47C
 ```
 
-**Important limitation:** GitHub Pages only serves static files, so this app
-has no backend or treasury private key that could push tokens to players.
-Instead, after a game finishes, the "Claim Reward" button calls a public
-claim function (`claimPlayReward`, `claimReward`, or `claim` — configurable
-in `js/config.js`) directly from the player's own connected wallet. For this
-to actually pay out tokens, the deployed Arcade1870 contract must implement
-one of those functions as a self-serve faucet/reward mechanism. If the
-contract doesn't support this, the button will show an explanatory error
-while the rest of the app (wallet connection, balance display, chess
-gameplay) continues to work.
+The ARC token contract does not provide a self-serve reward method. Deploy
+[`contracts/Arcade1870RewardVault.sol`](contracts/Arcade1870RewardVault.sol)
+to distribute ARC from a separate, pre-funded vault instead.
 
+The vault accepts claims authorized by an off-chain reward signer. This is
+essential: a static browser game cannot prove on-chain that someone completed
+a game, and an unrestricted public faucet would be immediately drainable.
+
+### Deploy and fund
+
+1. Deploy the contract with the ARC token address
+   (`0x8eddD4edea39c5B5f77662453600F53A202EE47C`) and a dedicated reward
+   signer's public address. Deploy it on the same chain as ARC.
+2. Record the deployed vault address, then transfer ARC to that address using
+   the normal ERC-20 `transfer` function. The vault address is safe to publish;
+   never put the owner or signer private keys in this repository or website.
+3. Run a reward-issuer service that verifies a completed game and creates an
+   EIP-712 signature for:
+   `Claim(address recipient,uint256 amount,uint256 nonce,uint256 deadline)`.
+   The EIP-712 domain must be named `Arcade1870RewardVault`, use version `1`,
+   the deployment chain ID, and the vault address.
+4. Configure the website to request that signature from the issuer and submit
+   it to `claim(amount, nonce, deadline, signature)`. Players pay the gas for
+   this transaction and receive ARC directly in their connected wallet.
+
+The owner can rotate a compromised reward signer and recover unallocated
+tokens. Secure both private keys with a hardware wallet or key-management
+service. The vault deliberately rejects expired, replayed, zero-amount, and
+unauthorized claims.
