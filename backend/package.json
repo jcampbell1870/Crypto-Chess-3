@@ -1,0 +1,14 @@
+{
+  "name": "crypto-chess-reward-issuer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ethers": "5.7.2"
+  }
+}

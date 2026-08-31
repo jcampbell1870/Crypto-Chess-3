@@ -85,3 +85,23 @@ private keys with a hardware wallet or key-management service. The vault
 deliberately rejects expired, replayed, zero-amount, and unauthorized claims.
 As with any custodial reward pool, the owner can recover ARC from the vault;
 only fund a deployment controlled by an owner you trust.
+
+## Reward issuer service
+
+`backend/` contains a minimal Node.js issuer. It signs EIP-712 claims for the
+deployed vault, but requires a server-generated completed-game proof; it is not
+an unrestricted faucet. Copy `backend/.env.example`, replace every placeholder,
+install dependencies, and run:
+
+```sh
+cd backend
+npm install
+npm start
+```
+
+Put the service behind an HTTPS reverse proxy and set `ALLOWED_ORIGIN` to the
+Pages origin. The issuer endpoint is `https://<your-domain>/claim` and accepts
+`{ "recipient": "...", "gameProof": "<64-hex-character HMAC>" }`. A trusted
+game-verification service must issue that HMAC only after validating a
+completed game. Set the resulting public HTTPS URL and deployed vault address
+in `js/config.js`; they remain blank until those services are deployed.
