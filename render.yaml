@@ -1,9 +1,9 @@
 services:
-  - name: crypto-chess-api
-    type: web
-    runtime: node
-    buildCommand: npm install
-    startCommand: npm start
+  - type: web
+    name: crypto-chess
+    env: static
+    buildCommand: ''
+    staticPublishPath: .
     envVars:
       - key: REWARD_VAULT_ADDRESS
         sync: false
