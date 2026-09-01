@@ -1,1 +1,15 @@
-
+services:
+  - name: crypto-chess-api
+    type: web
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: REWARD_VAULT_ADDRESS
+        sync: false
+      - key: REWARD_AMOUNT
+        sync: false
+      - key: REWARD_SIGNER_PRIVATE_KEY
+        sync: false
+      - key: GAME_VERIFICATION_SECRET
+        generateValue: true
