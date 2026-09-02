@@ -20,8 +20,8 @@ export const CONFIG = {
   // (e.g. Crypto Trivia) — see "Sharing the vault across multiple games" in
   // readme.md. Other games should point their own config at the same
   // rewardVaultAddress and a compatible rewardIssuerUrl, never the private key.
-  rewardVaultAddress: '',
-  rewardIssuerUrl: '',
+  rewardVaultAddress: '0x1e4f6e4a382adbdb662733a19ae773d3ab8f497d',
+  rewardIssuerUrl: 'https://crypto-chess-vp7o.onrender.com',
 };
 
 // Minimal ERC-20 ABI used for reading token metadata and balances.
