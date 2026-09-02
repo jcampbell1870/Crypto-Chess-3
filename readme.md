@@ -115,6 +115,8 @@ origin. Enter the deployed vault address, reward amount, and dedicated signer
 key as protected environment variables in the Render dashboard. Render
 provides the service hostname; add `api.cryptochess.org` as a custom domain
 there, then create a Cloudflare `api` CNAME pointing to that hostname.
+In Render, wait for the custom domain certificate to become active before
+enabling Cloudflare proxying; use **DNS only** while troubleshooting.
 
 Put the service behind an HTTPS reverse proxy and set `ALLOWED_ORIGIN` to `https://www.cryptochess.org`. The issuer endpoint is
 `https://api.cryptochess.org/claim` once that hostname is deployed and accepts
