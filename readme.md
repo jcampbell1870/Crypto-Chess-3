@@ -85,3 +85,27 @@ private keys with a hardware wallet or key-management service. The vault
 deliberately rejects expired, replayed, zero-amount, and unauthorized claims.
 As with any custodial reward pool, the owner can recover ARC from the vault;
 only fund a deployment controlled by an owner you trust.
+
+### Sharing the vault across multiple games
+
+The vault and reward-issuer pattern above are chain- and consumer-agnostic:
+they only validate a signed claim, and don't care which front end requested
+it. This means a single deployed, funded `Arcade1870RewardVault` can act as
+the shared treasury for more than one game — for example, both Crypto Chess
+and a companion game like Crypto Trivia can point at the **same**
+`rewardVaultAddress`.
+
+To let another game reuse this treasury:
+
+- Do **not** deploy a second vault; reuse the existing vault address as-is.
+- The other game's own config (in its own repository) sets the same
+  `rewardVaultAddress` and either the same `rewardIssuerUrl`, or its own
+  issuer endpoint that signs claims with the same reward-signer key/EIP-712
+  domain (`Arcade1870RewardVault`, version `1`, this vault's chain ID and
+  address). The vault only validates the signature, not the origin game.
+- The reward-signer private key and `REWARD_SIGNER_PRIVATE_KEY` /
+  `GAME_VERIFICATION_SECRET` values stay in this service's Render
+  environment (or the equivalent secret store for a dedicated issuer); never
+  copy them into the other game's repo, config file, or public site.
+- Confirm the other game prompts MetaMask to switch to the same `chainId`
+  the vault and token are deployed on.

@@ -16,6 +16,10 @@ export const CONFIG = {
 
   // Set these after deploying Arcade1870RewardVault. These values are public
   // and safe to publish; never place an owner or reward-signer private key here.
+  // This same vault/issuer pair can be shared as the treasury for other games
+  // (e.g. Crypto Trivia) — see "Sharing the vault across multiple games" in
+  // readme.md. Other games should point their own config at the same
+  // rewardVaultAddress and a compatible rewardIssuerUrl, never the private key.
   rewardVaultAddress: '',
   rewardIssuerUrl: '',
 };
