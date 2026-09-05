@@ -72,8 +72,28 @@ export class Wallet {
         params: [{ chainId: hexChainId }],
       });
     } catch (error) {
-      // 4902 = chain not added to MetaMask; nothing more we can safely do
-      // without knowing RPC details for arbitrary chains.
+      // 4902 = chain not added to MetaMask. Matching Crypto Hockey's
+      // multi-chain support, try adding the network if we know its params.
+      const known = CONFIG.supportedNetworks?.find((n) => n.chainId === CONFIG.chainId);
+      if (error?.code === 4902 && known) {
+        try {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [
+              {
+                chainId: hexChainId,
+                chainName: known.chainName,
+                nativeCurrency: known.nativeCurrency,
+                rpcUrls: known.rpcUrls,
+                blockExplorerUrls: known.blockExplorerUrls,
+              },
+            ],
+          });
+          return;
+        } catch {
+          // fall through to the generic error below
+        }
+      }
       throw new Error(
         `Please switch MetaMask to ${CONFIG.chainName} to interact with the Arcade1870 token.`
       );

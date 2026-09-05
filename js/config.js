@@ -14,6 +14,20 @@ export const CONFIG = {
   chainId: 1,
   chainName: 'Ethereum Mainnet',
 
+  // Fixed reward earned per completed game, mirroring Crypto Hockey's
+  // reward system (10 A1870 per game). This is a display value only — the
+  // reward issuer's signed claim is always the source of truth for amount.
+  rewardAmount: '10',
+
+  // Networks supported for the Arcade1870 token, matching the chain set
+  // Crypto Hockey supports (Ethereum Mainnet, Sepolia testnet, Polygon
+  // Mainnet). Used to let MetaMask add/switch to any of these networks.
+  supportedNetworks: [
+    { chainId: 1, chainName: 'Ethereum Mainnet', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpcUrls: ['https://eth-mainnet.g.alchemy.com/v2/YOUR_ALCHEMY_KEY'], blockExplorerUrls: ['https://etherscan.io'] },
+    { chainId: 11155111, chainName: 'Sepolia Testnet', nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 }, rpcUrls: ['https://eth-sepolia.g.alchemy.com/v2/YOUR_ALCHEMY_KEY'], blockExplorerUrls: ['https://sepolia.etherscan.io'] },
+    { chainId: 137, chainName: 'Polygon Mainnet', nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 }, rpcUrls: ['https://polygon-rpc.com'], blockExplorerUrls: ['https://polygonscan.com'] },
+  ],
+
   // Set these after deploying Arcade1870RewardVault. These values are public
   // and safe to publish; never place an owner or reward-signer private key here.
   // This same vault/issuer pair can be shared as the treasury for other games

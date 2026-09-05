@@ -86,6 +86,34 @@ deliberately rejects expired, replayed, zero-amount, and unauthorized claims.
 As with any custodial reward pool, the owner can recover ARC from the vault;
 only fund a deployment controlled by an owner you trust.
 
+### Parity with Crypto Hockey's reward system
+
+[Crypto Hockey](https://github.com/jcampbell1870/Crypto-Hockey) is a
+companion Arcade1870 game with its own (server-backed) reward system. Crypto
+Chess is configured to match its reward parameters as closely as its static,
+no-backend architecture allows:
+
+- **Same token**: both games use the Arcade1870 (ARC) contract at
+  `0x8eddD4edea39c5B5f77662453600F53A202EE47C`.
+- **Same reward amount**: 10 ARC per completed game (`rewardAmount` in
+  [`js/config.js`](js/config.js) and the recommended `REWARD_AMOUNT` value in
+  [`render.yaml`](render.yaml)), matching Crypto Hockey's fixed
+  `RewardAmount: "10"`.
+- **Same supported networks**: Ethereum Mainnet (`1`), Sepolia Testnet
+  (`11155111`), and Polygon Mainnet (`137`) are all listed in
+  `CONFIG.supportedNetworks`, matching Crypto Hockey's
+  `SupportedChainIds`. MetaMask will prompt to add any of these networks if
+  missing, the same way Crypto Hockey's `SwitchNetworkAsync` does.
+- **Same domain strategy**: the site is served at
+  `https://www.cryptochess.org/` (see [`CNAME`](CNAME)) fronted by
+  Cloudflare, mirroring how Crypto Hockey is deployed behind its own
+  Cloudflare-proxied domain.
+
+Crypto Chess still differs where its architecture requires it: it has no
+backend or database, so it uses a pre-funded, signature-gated reward vault
+(see above) instead of Crypto Hockey's server-side custodial wallet that
+sends rewards directly after validating a win against its game database.
+
 ### Sharing the vault across multiple games
 
 The vault and reward-issuer pattern above are chain- and consumer-agnostic:

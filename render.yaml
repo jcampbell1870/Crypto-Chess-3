@@ -9,6 +9,9 @@ services:
         sync: false
       - key: REWARD_AMOUNT
         sync: false
+        # Recommended: 10 (ARC per completed game), matching Crypto Hockey's
+        # fixed reward amount so the shared Arcade1870 treasury pays out
+        # consistently across games.
       - key: REWARD_SIGNER_PRIVATE_KEY
         sync: false
       - key: GAME_VERIFICATION_SECRET
