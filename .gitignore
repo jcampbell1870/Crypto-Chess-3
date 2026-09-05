@@ -1,0 +1,15 @@
+## .NET build artifacts
+bin/
+obj/
+*.user
+
+## IDE
+.vs/
+.vscode/
+*.suo
+
+## OS
+.DS_Store
+
+## Node (vendored JS has no build step, but ignore stray artifacts)
+node_modules/

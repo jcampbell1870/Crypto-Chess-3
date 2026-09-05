@@ -1,139 +1,126 @@
 # Crypto-Chess-3
 
-**Crypto Chess** is a browser-based chess game with MetaMask wallet
+**Crypto Chess** is a browser-playable chess game with MetaMask wallet
 integration and Arcade1870 (ARC) ERC-20 token rewards for playing. It is a
-plain static site (HTML/CSS/JavaScript, no build step or backend) so it can
-be published directly with GitHub Pages.
+**Blazor Server + EF Core** app — the same backend architecture as its
+companion game, [Crypto Hockey](https://github.com/jcampbell1870/Crypto-Hockey)
+— deployed to [Render](https://render.com) with a managed PostgreSQL
+database, rather than a static site.
 
-## Features
+## Architecture
 
-- Full chess rules (legal move generation, check/checkmate/stalemate
-  detection, castling, en passant, promotion) powered by
-  [chess.js](https://github.com/jhlywa/chess.js), vendored locally in
-  `js/vendor/`.
-- Two players share one device/board to play a local game.
-- Connect your MetaMask wallet ([ethers.js](https://docs.ethers.org/v5/),
-  vendored locally in `js/vendor/`) to see your address and Arcade1870
-  balance, and to claim a reward after finishing a game.
-- No backend or bundler required — works entirely from static files, ready
-  for GitHub Pages.
+- **ASP.NET Core Blazor Server** (`.NET 10`, Interactive Server render mode)
+  hosts the UI (`Components/Pages/*.razor`) and owns all game/player state
+  server-side.
+- **EF Core + PostgreSQL** (`Npgsql.EntityFrameworkCore.PostgreSQL`) persists
+  `PlayerProfile` and `GameSession` records (`Data/GameDbContext.cs`,
+  `Data/Migrations/`). Render's first-party managed Postgres is used instead
+  of Crypto Hockey's SQL Server, since that's what Render offers.
+- **Nethereum** (`Services/BlockchainService.cs`) prepares Arcade1870 (ARC)
+  reward payouts, mirroring Crypto Hockey's `BlockchainService`.
+- **Chess rules stay client-side**: the existing vendored
+  [chess.js](https://github.com/jhlywa/chess.js) engine and DOM board
+  renderer (`wwwroot/js/vendor/chess.js`, `wwwroot/js/board.js`) run in the
+  browser and are bridged into Blazor via JS interop
+  (`wwwroot/js/chess-interop.js`), the same way Crypto Hockey bridges its
+  canvas renderer.
+- **MetaMask wallet connection** (`wwwroot/js/wallet-interop.js`) is a port of
+  Crypto Hockey's `metamask-interop.js`, called from `Services/WalletService.cs`.
+- Two players share one device/board to play a local game; a reward is
+  granted for **completing** a game (win, loss, or draw), matching the
+  original static site's "play and earn" behavior.
 
-## Playing locally
+## Running locally
 
-Because the app uses ES modules, open it through a local web server rather
-than the `file://` protocol, for example:
+Prerequisites: [.NET 10 SDK](https://dotnet.microsoft.com/download) and a
+PostgreSQL instance (e.g. via Docker:
+`docker run -e POSTGRES_PASSWORD=<your-password> -p 5432:5432 postgres:16-alpine`).
 
-```sh
-python3 -m http.server 8000
+1. Set the connection string, either in `appsettings.Development.json` (not
+   committed) or an environment variable, e.g.:
+   ```
+   ConnectionStrings__DefaultConnection=Host=localhost;Port=5432;Database=cryptochess;Username=postgres;******
+   ```
+2. Run the app — pending EF Core migrations are applied automatically on
+   startup:
+   ```sh
+   dotnet run
+   ```
+3. Visit the URL printed in the console (Home `/`, Play `/game`,
+   Leaderboard `/leaderboard`).
+
+## Deploying to Render
+
+This repo includes a [`Dockerfile`](Dockerfile) and [`render.yaml`](render.yaml)
+Render Blueprint that provisions:
+
+- A **web service** (`env: docker`) built from the `Dockerfile`.
+- A managed **PostgreSQL database** (`crypto-chess-db`), whose connection
+  string is wired into the web service automatically via
+  `ConnectionStrings__DefaultConnection`.
+
+To deploy:
+
+1. In the Render dashboard, create a new Blueprint from this repository —
+   Render will read `render.yaml` and provision both resources.
+2. Set the non-synced environment variables Render prompts for
+   (`BlockchainConfig__EthereumRpcUrl`, `BlockchainConfig__SepoliaRpcUrl`,
+   `BlockchainConfig__PolygonRpcUrl`, and optionally
+   `REWARD_SIGNER_PRIVATE_KEY` if/when real on-chain payouts are wired up).
+3. EF Core migrations run automatically on container startup
+   (`db.Database.Migrate()` in `Program.cs`), so no manual migration step is
+   required for a fresh database.
+4. **Custom domain**: point `www.cryptochess.org` at the new Render service
+   from the Render dashboard (Settings → Custom Domains), then update the
+   Cloudflare DNS record (CNAME) to Render's provided target. This replaces
+   the old GitHub Pages `CNAME` file, which has been removed since hosting
+   has moved off GitHub Pages.
+
+## Arcade1870 (ARC) token reward
+
+The Arcade1870 token contract address and reward amount are configured in
+`appsettings.json` under `BlockchainConfig`:
+
+```
+Arcade1870ContractAddress: 0x8eddD4edea39c5B5f77662453600F53A202EE47C
+RewardAmount: 10
 ```
 
-Then visit `http://localhost:8000` in a browser with the MetaMask extension
-installed.
+`Services/BlockchainService.SendRewardAsync` currently validates the
+recipient address, resolves the configured RPC URL for the chain, and logs
+that a reward was prepared — it does not yet broadcast a real transaction,
+matching Crypto Hockey's own placeholder implementation. Wiring up genuine
+on-chain payouts requires configuring a `REWARD_SIGNER_PRIVATE_KEY` for a
+funded treasury wallet.
 
-## Deploying to GitHub Pages
+### Legacy client-side reward vault
 
-This repo includes a GitHub Actions workflow
-(`.github/workflows/static.yml`) that publishes the site to GitHub Pages on
-every push to `main`. Make sure **Settings → Pages → Build and
-deployment → Source** is set to **GitHub Actions** (this is the default
-once the workflow has run once). Alternatively, you can use the classic
-**Deploy from a branch** option pointed at `main` / `/ (root)`, since the
-site is fully static.
-
-## Arcade1870 (ARC) token reward vault
-
-The Arcade1870 token contract address is configured in
-[`js/config.js`](js/config.js):
-
-```
-0x8eddD4edea39c5B5f77662453600F53A202EE47C
-```
-
-The ARC token contract does not provide a self-serve reward method. Deploy
-[`contracts/Arcade1870RewardVault.sol`](contracts/Arcade1870RewardVault.sol)
-to distribute ARC from a separate, pre-funded vault instead.
-
-The vault accepts claims authorized by an off-chain reward signer. This is
-essential: a static browser game cannot prove on-chain that someone completed
-a game, and an unrestricted public faucet would be immediately drainable.
-
-### Deploy and fund
-
-1. Deploy the contract with the ARC token address
-   (`0x8eddD4edea39c5B5f77662453600F53A202EE47C`) and a dedicated reward
-   signer's public address. Deploy it on the same chain as ARC.
-2. Record the deployed vault address, then transfer ARC to that address using
-   the normal ERC-20 `transfer` function. The vault address is safe to publish;
-   never put the owner or signer private keys in this repository or website.
-3. Run a reward-issuer service that verifies a completed game and creates an
-   EIP-712 signature for:
-   `Claim(address recipient,uint256 amount,uint256 nonce,uint256 deadline)`.
-   The EIP-712 domain must be named `Arcade1870RewardVault`, use version `1`,
-   the deployment chain ID, and the vault address.
-4. Set `rewardVaultAddress` and the HTTPS `rewardIssuerUrl` in
-   [`js/config.js`](js/config.js). The issuer receives
-   `{ "recipient": "<connected MetaMask address>" }` and must return JSON with
-   `amount`, `nonce`, `deadline`, and a 65-byte `signature`. The game
-   simulates the vault claim before showing MetaMask, then submits
-   `claim(amount, nonce, deadline, signature)`. Players pay the gas and
-   receive ARC directly in their connected wallet.
-
-The owner can rotate a compromised reward signer and recover unallocated
-tokens. Ownership transfer requires the nominated new owner to call
-`acceptOwnership`, preventing loss from a mistyped address. Secure both
-private keys with a hardware wallet or key-management service. The vault
-deliberately rejects expired, replayed, zero-amount, and unauthorized claims.
-As with any custodial reward pool, the owner can recover ARC from the vault;
-only fund a deployment controlled by an owner you trust.
+Before the Blazor/EF Core migration, this game used a pre-funded,
+signature-gated `Arcade1870RewardVault` smart contract
+([`contracts/Arcade1870RewardVault.sol`](contracts/Arcade1870RewardVault.sol))
+so a static, backend-less site could still safely gate reward claims. That
+contract is kept in the repo as a documented alternative/legacy reward path
+(e.g. for a future fully-decentralized deployment) but is **not** used by the
+current Blazor Server backend, which grants rewards server-side after
+recording a completed `GameSession` in the database.
 
 ### Parity with Crypto Hockey's reward system
 
-[Crypto Hockey](https://github.com/jcampbell1870/Crypto-Hockey) is a
-companion Arcade1870 game with its own (server-backed) reward system. Crypto
-Chess is configured to match its reward parameters as closely as its static,
-no-backend architecture allows:
+Crypto Chess's reward configuration is intentionally kept in parity with
+[Crypto Hockey](https://github.com/jcampbell1870/Crypto-Hockey):
 
 - **Same token**: both games use the Arcade1870 (ARC) contract at
   `0x8eddD4edea39c5B5f77662453600F53A202EE47C`.
-- **Same reward amount**: 10 ARC per completed game (`rewardAmount` in
-  [`js/config.js`](js/config.js) and the recommended `REWARD_AMOUNT` value in
-  [`render.yaml`](render.yaml)), matching Crypto Hockey's fixed
-  `RewardAmount: "10"`.
+- **Same reward amount**: 10 ARC per completed game
+  (`BlockchainConfig:RewardAmount` in `appsettings.json`, matching Crypto
+  Hockey's fixed `RewardAmount: "10"`).
 - **Same supported networks**: Ethereum Mainnet (`1`), Sepolia Testnet
-  (`11155111`), and Polygon Mainnet (`137`) are all listed in
-  `CONFIG.supportedNetworks`, matching Crypto Hockey's
+  (`11155111`), and Polygon Mainnet (`137`)
+  (`BlockchainConfig:SupportedChainIds`), matching Crypto Hockey's
   `SupportedChainIds`. MetaMask will prompt to add any of these networks if
-  missing, the same way Crypto Hockey's `SwitchNetworkAsync` does.
+  missing, via `wallet-interop.js`'s `switchNetwork`, the same way Crypto
+  Hockey's `SwitchNetworkAsync` does.
 - **Same domain strategy**: the site is served at
-  `https://www.cryptochess.org/` (see [`CNAME`](CNAME)) fronted by
-  Cloudflare, mirroring how Crypto Hockey is deployed behind its own
-  Cloudflare-proxied domain.
-
-Crypto Chess still differs where its architecture requires it: it has no
-backend or database, so it uses a pre-funded, signature-gated reward vault
-(see above) instead of Crypto Hockey's server-side custodial wallet that
-sends rewards directly after validating a win against its game database.
-
-### Sharing the vault across multiple games
-
-The vault and reward-issuer pattern above are chain- and consumer-agnostic:
-they only validate a signed claim, and don't care which front end requested
-it. This means a single deployed, funded `Arcade1870RewardVault` can act as
-the shared treasury for more than one game — for example, both Crypto Chess
-and a companion game like Crypto Trivia can point at the **same**
-`rewardVaultAddress`.
-
-To let another game reuse this treasury:
-
-- Do **not** deploy a second vault; reuse the existing vault address as-is.
-- The other game's own config (in its own repository) sets the same
-  `rewardVaultAddress` and either the same `rewardIssuerUrl`, or its own
-  issuer endpoint that signs claims with the same reward-signer key/EIP-712
-  domain (`Arcade1870RewardVault`, version `1`, this vault's chain ID and
-  address). The vault only validates the signature, not the origin game.
-- The reward-signer private key and `REWARD_SIGNER_PRIVATE_KEY` /
-  `GAME_VERIFICATION_SECRET` values stay in this service's Render
-  environment (or the equivalent secret store for a dedicated issuer); never
-  copy them into the other game's repo, config file, or public site.
-- Confirm the other game prompts MetaMask to switch to the same `chainId`
-  the vault and token are deployed on.
+  `https://www.cryptochess.org/`, fronted by Cloudflare — see the "Custom
+  domain" step above for how this is now configured via Render instead of
+  GitHub Pages' `CNAME` file.

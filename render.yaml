@@ -1,18 +1,46 @@
+databases:
+  - name: crypto-chess-db
+    plan: free
+    databaseName: cryptochess
+    user: cryptochess
+
 services:
   - type: web
     name: crypto-chess
-    env: static
-    buildCommand: ''
-    staticPublishPath: .
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
     envVars:
-      - key: REWARD_VAULT_ADDRESS
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://+:8080
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: crypto-chess-db
+          property: connectionString
+      # Arcade1870 (ARC) token contract, matching Crypto Hockey's reward
+      # config so the shared treasury pays out consistently across games.
+      - key: BlockchainConfig__Arcade1870ContractAddress
+        value: "0x8eddD4edea39c5B5f77662453600F53A202EE47C"
+      - key: BlockchainConfig__RewardAmount
+        value: "10"
+      - key: BlockchainConfig__EthereumRpcUrl
         sync: false
-      - key: REWARD_AMOUNT
+      - key: BlockchainConfig__SepoliaRpcUrl
         sync: false
-        # Recommended: 10 (ARC per completed game), matching Crypto Hockey's
-        # fixed reward amount so the shared Arcade1870 treasury pays out
-        # consistently across games.
+      - key: BlockchainConfig__PolygonRpcUrl
+        sync: false
+      - key: BlockchainConfig__DefaultNetworkChainId
+        value: "1"
+      - key: BlockchainConfig__SupportedChainIds__0
+        value: "1"
+      - key: BlockchainConfig__SupportedChainIds__1
+        value: "11155111"
+      - key: BlockchainConfig__SupportedChainIds__2
+        value: "137"
+      # Signer used to actually broadcast reward payouts once wired up in
+      # BlockchainService.SendRewardAsync. Not set by default: currently a
+      # placeholder/logging-only implementation, same as Crypto Hockey.
       - key: REWARD_SIGNER_PRIVATE_KEY
         sync: false
-      - key: GAME_VERIFICATION_SECRET
-        generateValue: true
