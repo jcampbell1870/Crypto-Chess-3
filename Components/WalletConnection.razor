@@ -1,0 +1,109 @@
+@using Crypto_Chess.Models
+@using Crypto_Chess.Services
+@inject IWalletService WalletService
+@inject IJSRuntime JSRuntime
+
+<div class="wallet-card">
+    <div class="wallet-header">
+        <h3>Wallet Connection</h3>
+    </div>
+
+    @if (!WalletState.IsConnected)
+    {
+        <div class="wallet-disconnected">
+            <p>Connect your MetaMask wallet to play and earn Arcade1870 (ARC) rewards!</p>
+            <button class="btn btn-primary btn-lg" @onclick="ConnectWallet">
+                Connect MetaMask
+            </button>
+            @if (!MetaMaskInstalled)
+            {
+                <p class="warning-text">MetaMask is not installed. <a href="https://metamask.io" target="_blank">Download MetaMask</a></p>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="wallet-connected">
+            <div class="wallet-info">
+                <div class="info-row">
+                    <span class="label">Address:</span>
+                    <span class="address">@FormatAddress(WalletState.Address)</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Network:</span>
+                    <span class="network">@WalletState.ChainName</span>
+                </div>
+            </div>
+
+            <div class="wallet-actions">
+                <button class="btn btn-secondary" @onclick="SwitchNetwork">
+                    Switch Network
+                </button>
+                <button class="btn btn-danger" @onclick="DisconnectWallet">
+                    Disconnect
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private WalletConnectionState WalletState = new();
+    private bool MetaMaskInstalled;
+
+    [Parameter]
+    public WalletConnectionState? ExternalWalletState { get; set; }
+
+    [Parameter]
+    public EventCallback<WalletConnectionState> OnWalletConnected { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            MetaMaskInstalled = await JSRuntime.InvokeAsync<bool>("window.metamaskInterop.isMetaMaskInstalled");
+            WalletState = await WalletService.GetWalletStateAsync();
+            if (WalletState.IsConnected)
+            {
+                await OnWalletConnected.InvokeAsync(WalletState);
+            }
+        }
+        catch
+        {
+            MetaMaskInstalled = false;
+        }
+    }
+
+    private async Task ConnectWallet()
+    {
+        WalletState = await WalletService.ConnectWalletAsync();
+        await OnWalletConnected.InvokeAsync(WalletState);
+        StateHasChanged();
+    }
+
+    private async Task DisconnectWallet()
+    {
+        await WalletService.DisconnectWalletAsync();
+        WalletState = new WalletConnectionState { IsConnected = false };
+        await OnWalletConnected.InvokeAsync(WalletState);
+        StateHasChanged();
+    }
+
+    private async Task SwitchNetwork()
+    {
+        bool success = await WalletService.SwitchNetworkAsync(1);
+        if (success)
+        {
+            WalletState = await WalletService.GetWalletStateAsync();
+            await OnWalletConnected.InvokeAsync(WalletState);
+            StateHasChanged();
+        }
+    }
+
+    private static string FormatAddress(string? address)
+    {
+        if (string.IsNullOrEmpty(address) || address.Length < 10)
+            return address ?? "";
+        return $"{address[..6]}...{address[^4..]}";
+    }
+}

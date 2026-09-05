@@ -1,0 +1,132 @@
+@using Crypto_Chess.Services
+@using Crypto_Chess.Models
+@page "/leaderboard"
+
+<PageTitle>Leaderboard - Crypto Chess</PageTitle>
+
+<div class="leaderboard-container">
+    <h1>🏆 Leaderboard</h1>
+    <p class="lead">Top players by wins and rewards earned</p>
+
+    @if (isLoading)
+    {
+        <div class="text-center mt-5">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (leaderboard != null && leaderboard.Count > 0)
+    {
+        <div class="leaderboard-table">
+            <table class="table table-dark table-hover">
+                <thead class="table-primary">
+                    <tr>
+                        <th class="rank-col">Rank</th>
+                        <th class="address-col">Player</th>
+                        <th class="stats-col text-center">Wins</th>
+                        <th class="stats-col text-center">Games</th>
+                        <th class="stats-col text-center">Win Rate</th>
+                        <th class="rewards-col text-end">Total Rewards</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < leaderboard.Count; i++)
+                    {
+                        var player = leaderboard[i];
+                        <tr class="@(i < 3 ? $"top-{i + 1}" : "")">
+                            <td class="rank-col">
+                                @if (i == 0)
+                                {
+                                    <span class="badge badge-gold">🥇 1st</span>
+                                }
+                                else if (i == 1)
+                                {
+                                    <span class="badge badge-silver">🥈 2nd</span>
+                                }
+                                else if (i == 2)
+                                {
+                                    <span class="badge badge-bronze">🥉 3rd</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@(i + 1)</span>
+                                }
+                            </td>
+                            <td class="address-col">
+                                <span class="player-address">@FormatAddress(player.WalletAddress)</span>
+                            </td>
+                            <td class="stats-col text-center">
+                                <span class="wins-badge">@player.TotalWins</span>
+                            </td>
+                            <td class="stats-col text-center">
+                                @player.TotalGames
+                            </td>
+                            <td class="stats-col text-center">
+                                <span class="winrate">@player.WinRate.ToString("F1")%</span>
+                            </td>
+                            <td class="rewards-col text-end">
+                                <span class="rewards">@player.TotalRewardsEarned.ToString("F2")</span>
+                                <span class="token-symbol">ARC</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info mt-5">
+            <p>No players yet. Be the first to play and join the leaderboard!</p>
+            <a href="/game" class="btn btn-primary">Start Playing</a>
+        </div>
+    }
+
+    <div class="leaderboard-footer mt-4">
+        <a href="/" class="btn btn-outline-secondary">Back to Home</a>
+        <button class="btn btn-outline-primary" @onclick="RefreshLeaderboard">Refresh</button>
+    </div>
+</div>
+
+@code {
+    private List<PlayerProfile>? leaderboard;
+    private bool isLoading = true;
+
+    [Inject]
+    IGameService GameService { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLeaderboard();
+    }
+
+    private async Task LoadLeaderboard()
+    {
+        isLoading = true;
+        try
+        {
+            leaderboard = await GameService.GetLeaderboardAsync(50);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading leaderboard: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task RefreshLeaderboard()
+    {
+        await LoadLeaderboard();
+    }
+
+    private static string FormatAddress(string? address)
+    {
+        if (string.IsNullOrEmpty(address) || address.Length < 10)
+            return address ?? "";
+        return $"{address[..6]}...{address[^4..]}";
+    }
+}

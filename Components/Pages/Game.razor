@@ -1,0 +1,160 @@
+@page "/game"
+@using Crypto_Chess.Services
+@using Crypto_Chess.Models
+@implements IAsyncDisposable
+
+<PageTitle>Crypto Chess - Play</PageTitle>
+
+<div class="game-container">
+    <div class="game-sidebar panel">
+        <WalletConnection OnWalletConnected="HandleWalletConnected" />
+
+        <div class="game-stats mt-3">
+            <h4>Game Stats</h4>
+            @if (walletState?.IsConnected == true)
+            {
+                <div class="stats-info">
+                    <p>Player: @FormatAddress(walletState.Address)</p>
+                    <p>Total Games: @(playerProfile?.TotalGames ?? 0)</p>
+                    <p>Total Wins: @(playerProfile?.TotalWins ?? 0)</p>
+                    <p>Total Rewards: @((playerProfile?.TotalRewardsEarned ?? 0).ToString("F2")) ARC</p>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted">Connect your wallet to track stats and earn rewards.</p>
+            }
+        </div>
+    </div>
+
+    <div class="game-area panel">
+        <h2>Chess Board</h2>
+        <p class="status-row">@turnStatus</p>
+        <p class="status-row">@gameStatus</p>
+        <div id="board" role="grid" aria-label="Chess board"></div>
+        <button class="btn btn-secondary mt-3" @onclick="NewGame">New Game</button>
+
+        @if (gameOver)
+        {
+            <div class="claim-panel mt-3">
+                <p>@claimMessage</p>
+                <button class="btn btn-info" @onclick="ClaimReward" disabled="@(!canClaim || rewardClaimed)">
+                    @(rewardClaimed ? "Reward Claimed" : "Claim Reward")
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private WalletConnectionState? walletState;
+    private PlayerProfile? playerProfile;
+    private int? currentSessionId;
+    private string turnStatus = "White to move";
+    private string gameStatus = "";
+    private bool gameOver;
+    private bool rewardClaimed;
+    private bool canClaim;
+    private string claimMessage = "";
+    private DotNetObjectReference<Game>? dotNetRef;
+
+    [Inject] IGameService GameService { get; set; } = null!;
+    [Inject] IJSRuntime JSRuntime { get; set; } = null!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            dotNetRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("window.chessInterop.init", "board", dotNetRef);
+        }
+    }
+
+    private async Task HandleWalletConnected(WalletConnectionState state)
+    {
+        walletState = state;
+        if (state.IsConnected && !string.IsNullOrEmpty(state.Address))
+        {
+            playerProfile = await GameService.GetOrCreatePlayerAsync(state.Address);
+            currentSessionId = (await GameService.CreateGameSessionAsync(state.Address)).Id;
+        }
+        else
+        {
+            currentSessionId = null;
+        }
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnMove(string turn, bool inCheck)
+    {
+        turnStatus = $"{turn} to move";
+        gameStatus = inCheck ? "Check!" : "";
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task OnGameOver(string reason, string? winner)
+    {
+        gameStatus = reason;
+        turnStatus = "Game over";
+        gameOver = true;
+        canClaim = walletState?.IsConnected == true;
+        claimMessage = canClaim
+            ? "You earned an Arcade1870 reward for playing — claim it below!"
+            : "Connect your wallet to claim your Arcade1870 reward for playing!";
+
+        if (currentSessionId.HasValue)
+        {
+            bool playerWon = reason.Contains("Checkmate");
+            await GameService.EndGameSessionAsync(currentSessionId.Value, reason, playerWon);
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task ClaimReward()
+    {
+        if (!currentSessionId.HasValue) return;
+
+        bool success = await GameService.ClaimRewardAsync(currentSessionId.Value);
+        if (success)
+        {
+            rewardClaimed = true;
+            if (walletState?.Address is { } address)
+            {
+                playerProfile = await GameService.GetOrCreatePlayerAsync(address);
+            }
+        }
+        StateHasChanged();
+    }
+
+    private async Task NewGame()
+    {
+        await JSRuntime.InvokeVoidAsync("window.chessInterop.reset");
+        turnStatus = "White to move";
+        gameStatus = "";
+        gameOver = false;
+        rewardClaimed = false;
+        canClaim = false;
+
+        currentSessionId = walletState is { IsConnected: true, Address: { } address }
+            ? (await GameService.CreateGameSessionAsync(address)).Id
+            : null;
+
+        StateHasChanged();
+    }
+
+    private static string FormatAddress(string? address)
+    {
+        if (string.IsNullOrEmpty(address) || address.Length < 10)
+            return address ?? "";
+        return $"{address[..6]}...{address[^4..]}";
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        dotNetRef?.Dispose();
+        await Task.CompletedTask;
+    }
+}

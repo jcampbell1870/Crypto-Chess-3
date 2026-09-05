@@ -1,0 +1,226 @@
+/* Blazor Server layout scaffolding for Crypto Chess. Board/theme colors are
+   defined in css/styles.css (reused from the original static site); this
+   file provides the app shell (nav, page grid, wallet card, tables) needed
+   by the new Razor components, mirroring Crypto Hockey's app.css structure. */
+
+html, body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+a, .btn-link {
+    color: #38bdf8;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #0284c7;
+    border-color: #0284c7;
+}
+
+.btn-primary:hover {
+    background-color: #0369a1;
+    border-color: #0369a1;
+}
+
+.content {
+    padding-top: 1.1rem;
+}
+
+.page {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    min-height: 100vh;
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+main {
+    flex: 1;
+}
+
+.sidebar {
+    background: #1e293b;
+    width: 250px;
+}
+
+.top-row {
+    background-color: #1e293b;
+    border-bottom: 1px solid #334155;
+    justify-content: flex-end;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.top-row .navbar-brand {
+    font-size: 1.1rem;
+    color: #e2e8f0;
+}
+
+.navbar-toggler {
+    display: none;
+}
+
+.nav-scrollable {
+    display: block;
+}
+
+.nav-item {
+    font-size: 0.9rem;
+    padding-bottom: 0.5rem;
+}
+
+.nav-item a {
+    color: #cbd5e1;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    line-height: 3rem;
+    text-decoration: none;
+}
+
+.nav-item a.active {
+    background-color: #0284c7;
+    color: white;
+}
+
+.nav-item a:hover {
+    background-color: #334155;
+    color: white;
+}
+
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
+
+/* Home page */
+.hero-section {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.feature-highlights {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin: 2rem 0;
+}
+
+.feature-card, .step-card {
+    background: #1e293b;
+    border-radius: 8px;
+    padding: 1.25rem;
+    flex: 1 1 220px;
+    max-width: 280px;
+}
+
+.step-number {
+    background: #0284c7;
+    color: #fff;
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+}
+
+.cta-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.info-section {
+    padding: 1rem 2rem 3rem;
+    text-align: center;
+}
+
+/* Wallet card */
+.wallet-card {
+    background: #1e293b;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.wallet-info .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.25rem 0;
+    color: #cbd5e1;
+}
+
+.wallet-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.warning-text {
+    color: #f87171;
+}
+
+/* Game page */
+.game-container {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.panel {
+    background: #1e293b;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.game-sidebar {
+    flex: 0 0 260px;
+}
+
+.game-area {
+    flex: 1 1 400px;
+}
+
+.status-row {
+    font-weight: 600;
+}
+
+.claim-panel {
+    background: #0f172a;
+    border-radius: 6px;
+    padding: 0.75rem;
+}
+
+/* Leaderboard page */
+.leaderboard-table {
+    overflow-x: auto;
+}
+
+.badge-gold { background: #facc15; color: #1e293b; }
+.badge-silver { background: #cbd5e1; color: #1e293b; }
+.badge-bronze { background: #d97706; color: #1e293b; }
+
+.token-symbol {
+    color: #94a3b8;
+    margin-left: 0.25rem;
+}
