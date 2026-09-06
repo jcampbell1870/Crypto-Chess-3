@@ -22,6 +22,10 @@ const tokenDecimals = Number(process.env.TOKEN_DECIMALS || 18);
 const claimTtlSeconds = Number(process.env.CLAIM_TTL_SECONDS || 600);
 const minClaimIntervalMs = Number(process.env.MIN_CLAIM_INTERVAL_MS || 60 * 60 * 1000);
 const minRewardPlies = Number(process.env.MIN_REWARD_PLIES || 4);
+const configuredExpectedSigner = process.env.REWARD_SIGNER_ADDRESS || '';
+if (configuredExpectedSigner && !ethers.isAddress(configuredExpectedSigner)) {
+  console.error('REWARD_SIGNER_ADDRESS is not a valid Ethereum address.');
+}
 // The game is published from GitHub Pages under these production domains
 // (see CNAME). Reward claims are fetched cross-origin from the Render
 // issuer, so these must always be allowed even if ALLOWED_ORIGINS hasn't
@@ -183,13 +187,11 @@ async function handleRewardClaim(request, response) {
     sendJson(response, 503, { error: 'Reward signer private key is invalid.' }, origin);
     return;
   }
-  const expectedSigner = process.env.REWARD_SIGNER_ADDRESS;
-
-  if (expectedSigner && !ethers.isAddress(expectedSigner)) {
+  if (configuredExpectedSigner && !ethers.isAddress(configuredExpectedSigner)) {
     sendJson(response, 503, { error: 'Reward signer address configuration is invalid.' }, origin);
     return;
   }
-  if (expectedSigner && signer.address.toLowerCase() !== expectedSigner.toLowerCase()) {
+  if (configuredExpectedSigner && signer.address.toLowerCase() !== configuredExpectedSigner.toLowerCase()) {
     sendJson(response, 503, { error: 'Reward signer does not match configuration.' }, origin);
     return;
   }
