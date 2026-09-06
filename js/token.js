@@ -60,7 +60,17 @@ export class Token {
       body: JSON.stringify({ recipient: this.wallet.address, game }),
     });
     if (!response.ok) {
-      throw new Error('The reward issuer could not authorize this completed game.');
+      let issuerError = '';
+      try {
+        const errorPayload = await response.json();
+        issuerError = typeof errorPayload.error === 'string' ? ` ${errorPayload.error}` : '';
+      } catch {
+        // Keep the user-facing message useful when the issuer returns HTML or
+        // an empty response, such as a missing deployment route.
+      }
+      throw new Error(
+        `The reward issuer could not authorize this completed game (${response.status}).${issuerError}`
+      );
     }
 
     const claim = await response.json();
