@@ -24,7 +24,9 @@ const minClaimIntervalMs = Number(process.env.MIN_CLAIM_INTERVAL_MS || 60 * 60 *
 const minRewardPlies = Number(process.env.MIN_REWARD_PLIES || 4);
 const configuredExpectedSigner = process.env.REWARD_SIGNER_ADDRESS || '';
 if (process.env.RENDER && !ethers.isAddress(rewardVaultAddress)) {
-  throw new Error('REWARD_VAULT_ADDRESS must be the deployed Arcade1870RewardVault address.');
+  throw new Error(
+    'REWARD_VAULT_ADDRESS must be set to the deployed Arcade1870RewardVault address.'
+  );
 }
 if (configuredExpectedSigner && !ethers.isAddress(configuredExpectedSigner)) {
   throw new Error(
@@ -222,7 +224,8 @@ async function handleRewardClaim(request, response) {
         deadline,
       }
     );
-  } catch {
+  } catch (error) {
+    console.error('Reward claim signing failed:', error.message);
     sendJson(response, 503, {
       error: 'EIP-712 reward signing failed. Verify the signer, vault address, and chain ID configuration.',
     }, origin);
