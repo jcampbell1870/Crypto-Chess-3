@@ -48,7 +48,8 @@ Configure these Render environment variables:
 - `MIN_REWARD_PLIES`: minimum half-moves before a completed game can be
   rewarded, default `4`
 - `PUBLIC_REWARD_ISSUER_URL`: public URL for the Render reward issuer,
-  normally `https://crypto-chess.onrender.com/api/reward-claim`
+  normally `https://crypto-chess.onrender.com/api/reward-claim`; keep it in
+  sync with `rewardIssuerUrl` in `js/config.js` for GitHub Pages deployments
 - `REWARD_SIGNER_PRIVATE_KEY`: private key for the dedicated reward signer
 - `ALLOWED_ORIGINS`: optional comma-separated allowed browser origins
 
