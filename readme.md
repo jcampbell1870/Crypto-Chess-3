@@ -11,7 +11,10 @@ be published directly with GitHub Pages.
   detection, castling, en passant, promotion) powered by
   [chess.js](https://github.com/jhlywa/chess.js), vendored locally in
   `js/vendor/`.
-- Two players share one device/board to play a local game.
+- Two players share one device/board to play a local game, or enable
+  "Play vs Computer" to challenge a built-in AI opponent (minimax search
+  with alpha-beta pruning over Easy/Medium/Hard difficulty; no external
+  engine or network access required).
 - Connect your MetaMask wallet ([ethers.js](https://docs.ethers.org/v5/),
   vendored locally in `js/vendor/`) to see your address and Arcade1870
   balance, and to claim a reward after finishing a game.

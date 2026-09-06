@@ -99,6 +99,28 @@ button:disabled {
   color: var(--muted);
 }
 
+.ai-controls {
+  margin-bottom: 0.5rem;
+}
+
+.ai-controls label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.ai-controls select {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--muted);
+  border-radius: 0.35rem;
+  padding: 0.15rem 0.4rem;
+}
+
+.ai-controls select:disabled {
+  opacity: 0.6;
+}
+
 #board {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
