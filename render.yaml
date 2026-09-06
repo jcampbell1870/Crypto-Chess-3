@@ -24,5 +24,7 @@ services:
         value: 4
       - key: REWARD_SIGNER_PRIVATE_KEY
         sync: false
+      - key: REWARD_SIGNER_ADDRESS
+        sync: false
       - key: ALLOWED_ORIGINS
         sync: false

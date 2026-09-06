@@ -51,6 +51,8 @@ Configure these Render environment variables:
 - `MIN_REWARD_PLIES`: minimum half-moves before a completed game can be
   rewarded, default `4`
 - `REWARD_SIGNER_PRIVATE_KEY`: private key for the dedicated reward signer
+- `REWARD_SIGNER_ADDRESS`: optional signer address check; when set, it must be
+  the address derived from `REWARD_SIGNER_PRIVATE_KEY`
 - `ALLOWED_ORIGINS`: optional comma-separated allowed browser origins, added
   on top of the built-in defaults (`https://www.cryptochess.org` and
   `https://cryptochess.org`, the GitHub Pages production domains). Use this
@@ -60,6 +62,12 @@ Configure these Render environment variables:
 
 Never put owner or signer private keys in `js/config.js`; the Render service
 generates the public runtime config from environment variables.
+
+`REWARD_VAULT_ADDRESS` must be the deployed `Arcade1870RewardVault` contract,
+not the ARC token address. The ARC token address is
+`0x8eddD4edea39c5B5f77662453600F53A202EE47C`. Verify that the vault's
+`rewardToken()` is that address, its `rewardSigner()` matches the signer
+address, and that the vault holds enough ARC before testing a payout.
 
 ## Arcade1870 (ARC) token reward vault
 

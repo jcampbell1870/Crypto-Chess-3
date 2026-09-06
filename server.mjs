@@ -13,11 +13,9 @@ const tokenAddress =
   process.env.TOKEN_ADDRESS || '0x8eddD4edea39c5B5f77662453600F53A202EE47C';
 const chainId = Number(process.env.CHAIN_ID || 1);
 const chainName = process.env.CHAIN_NAME || 'Ethereum Mainnet';
-// The deployed vault address is public. Allow an environment override for
-// migrations, but keep the production issuer usable if Render only has the
-// signer secret configured.
-const rewardVaultAddress =
-  process.env.REWARD_VAULT_ADDRESS || '0x1e4f6e4a382adbdb662733a19ae773d3ab8f497d';
+// There is no safe default for the vault: this must be the address of the
+// deployed Arcade1870RewardVault, not the ARC token contract.
+const rewardVaultAddress = process.env.REWARD_VAULT_ADDRESS || '';
 const rewardIssuerUrl = process.env.PUBLIC_REWARD_ISSUER_URL || '/api/reward-claim';
 const rewardAmount = process.env.REWARD_AMOUNT || '10';
 const tokenDecimals = Number(process.env.TOKEN_DECIMALS || 18);
@@ -178,36 +176,49 @@ async function handleRewardClaim(request, response) {
   const amount = ethers.parseUnits(rewardAmount, tokenDecimals);
   const nonce = BigInt(now) * 1000n + BigInt(nonceCounter++);
   const deadline = Math.floor(now / 1000) + claimTtlSeconds;
-  const signer = new ethers.Wallet(privateKey);
+  let signer;
+  try {
+    signer = new ethers.Wallet(privateKey);
+  } catch {
+    sendJson(response, 503, { error: 'Reward signer private key is invalid.' }, origin);
+    return;
+  }
   const expectedSigner = process.env.REWARD_SIGNER_ADDRESS;
 
-  if (expectedSigner && signer.address.toLowerCase() !== expectedSigner.toLowerCase()) {
+  if (expectedSigner && (!ethers.isAddress(expectedSigner) ||
+      signer.address.toLowerCase() !== expectedSigner.toLowerCase())) {
     sendJson(response, 503, { error: 'Reward signer does not match configuration.' }, origin);
     return;
   }
 
-  const signature = await signer.signTypedData(
-    {
-      name: 'Arcade1870RewardVault',
-      version: '1',
-      chainId,
-      verifyingContract: rewardVaultAddress,
-    },
-    {
-      Claim: [
-        { name: 'recipient', type: 'address' },
-        { name: 'amount', type: 'uint256' },
-        { name: 'nonce', type: 'uint256' },
-        { name: 'deadline', type: 'uint256' },
-      ],
-    },
-    {
-      recipient: normalizedRecipient,
-      amount,
-      nonce,
-      deadline,
-    }
-  );
+  let signature;
+  try {
+    signature = await signer.signTypedData(
+      {
+        name: 'Arcade1870RewardVault',
+        version: '1',
+        chainId,
+        verifyingContract: rewardVaultAddress,
+      },
+      {
+        Claim: [
+          { name: 'recipient', type: 'address' },
+          { name: 'amount', type: 'uint256' },
+          { name: 'nonce', type: 'uint256' },
+          { name: 'deadline', type: 'uint256' },
+        ],
+      },
+      {
+        recipient: normalizedRecipient,
+        amount,
+        nonce,
+        deadline,
+      }
+    );
+  } catch {
+    sendJson(response, 503, { error: 'Reward claim signing failed. Check the vault and chain configuration.' }, origin);
+    return;
+  }
 
   recentClaims.set(normalizedRecipient, now);
   claimedGames.add(gameHash);
