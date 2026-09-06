@@ -185,8 +185,11 @@ async function handleRewardClaim(request, response) {
   }
   const expectedSigner = process.env.REWARD_SIGNER_ADDRESS;
 
-  if (expectedSigner && (!ethers.isAddress(expectedSigner) ||
-      signer.address.toLowerCase() !== expectedSigner.toLowerCase())) {
+  if (expectedSigner && !ethers.isAddress(expectedSigner)) {
+    sendJson(response, 503, { error: 'Reward signer address configuration is invalid.' }, origin);
+    return;
+  }
+  if (expectedSigner && signer.address.toLowerCase() !== expectedSigner.toLowerCase()) {
     sendJson(response, 503, { error: 'Reward signer does not match configuration.' }, origin);
     return;
   }
@@ -216,7 +219,7 @@ async function handleRewardClaim(request, response) {
       }
     );
   } catch {
-    sendJson(response, 503, { error: 'Reward claim signing failed. Check the vault and chain configuration.' }, origin);
+    sendJson(response, 503, { error: 'Reward claim signing failed. Verify the signer, vault, and chain configuration.' }, origin);
     return;
   }
 
