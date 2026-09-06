@@ -20,10 +20,21 @@ const tokenDecimals = Number(process.env.TOKEN_DECIMALS || 18);
 const claimTtlSeconds = Number(process.env.CLAIM_TTL_SECONDS || 600);
 const minClaimIntervalMs = Number(process.env.MIN_CLAIM_INTERVAL_MS || 60 * 60 * 1000);
 const minRewardPlies = Number(process.env.MIN_REWARD_PLIES || 4);
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+// The game is published from GitHub Pages under these production domains
+// (see CNAME). Reward claims are fetched cross-origin from the Render
+// issuer, so these must always be allowed even if ALLOWED_ORIGINS hasn't
+// been (re)configured in the Render dashboard after a domain change.
+const defaultAllowedOrigins = [
+  'https://www.cryptochess.org',
+  'https://cryptochess.org',
+];
+const configuredAllowedOrigins = (process.env.ALLOWED_ORIGINS || '')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
+const allowedOrigins = [
+  ...new Set([...defaultAllowedOrigins, ...configuredAllowedOrigins]),
+];
 
 const mimeTypes = {
   '.css': 'text/css; charset=utf-8',

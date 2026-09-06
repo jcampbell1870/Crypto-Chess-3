@@ -2,6 +2,7 @@ import { CONFIG } from './config.js';
 import { Wallet } from './wallet.js';
 import { Token } from './token.js';
 import { Board } from './board.js';
+import { findBestMove } from './ai.js';
 
 const els = {
   connectBtn: document.getElementById('connect-wallet'),
@@ -15,6 +16,9 @@ const els = {
   claimBtn: document.getElementById('claim-reward'),
   claimStatus: document.getElementById('claim-status'),
   board: document.getElementById('board'),
+  vsComputer: document.getElementById('vs-computer'),
+  aiDifficulty: document.getElementById('ai-difficulty'),
+  aiSide: document.getElementById('ai-side'),
 };
 
 const wallet = new Wallet({
@@ -30,6 +34,8 @@ const wallet = new Wallet({
 const token = new Token(wallet);
 let rewardEligible = false;
 let rewardGame = null;
+let vsComputer = false;
+let humanColor = 'w';
 
 function updateWalletUI() {
   if (wallet.isConnected()) {
@@ -98,10 +104,31 @@ els.claimBtn.addEventListener('click', async () => {
   }
 });
 
+function aiColor() {
+  return humanColor === 'w' ? 'b' : 'w';
+}
+
+// If it's the computer's turn, let it "think" briefly (so the status
+// message is visible) and then play a move via the built-in AI.
+function maybeTriggerAiMove() {
+  if (!vsComputer) return;
+  if (board.game.game_over()) return;
+  if (board.game.turn() !== aiColor()) return;
+
+  els.turnStatus.textContent = 'Computer is thinking…';
+  els.newGameBtn.disabled = true;
+  setTimeout(() => {
+    const move = findBestMove(board.game.fen(), els.aiDifficulty.value);
+    if (move) board.applyMove(move);
+    els.newGameBtn.disabled = false;
+  }, 250);
+}
+
 const board = new Board(els.board, {
   onMove: () => {
     els.turnStatus.textContent = `${board.game.turn() === 'w' ? 'White' : 'Black'} to move`;
     els.gameStatus.textContent = board.game.in_check() ? 'Check!' : '';
+    maybeTriggerAiMove();
   },
   onGameOver: (reason) => {
     els.gameStatus.textContent = reason;
@@ -122,7 +149,7 @@ const board = new Board(els.board, {
   },
 });
 
-els.newGameBtn.addEventListener('click', () => {
+function startNewGame() {
   board.reset();
   rewardEligible = false;
   rewardGame = null;
@@ -130,6 +157,21 @@ els.newGameBtn.addEventListener('click', () => {
   els.gameStatus.textContent = '';
   els.claimStatus.textContent = '';
   updateWalletUI();
+  maybeTriggerAiMove();
+}
+
+els.newGameBtn.addEventListener('click', startNewGame);
+
+els.vsComputer.addEventListener('change', () => {
+  vsComputer = els.vsComputer.checked;
+  els.aiDifficulty.disabled = !vsComputer;
+  els.aiSide.disabled = !vsComputer;
+  maybeTriggerAiMove();
+});
+
+els.aiSide.addEventListener('change', () => {
+  humanColor = els.aiSide.value;
+  startNewGame();
 });
 
 // Initial UI state.

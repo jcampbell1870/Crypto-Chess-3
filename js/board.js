@@ -85,10 +85,23 @@ export class Board {
     return ['q', 'r', 'b', 'n'].includes(normalized) ? normalized : 'q';
   }
 
-  #makeMove(from, to) {
+  // Applies a move decided outside of the board's own click handling, e.g.
+  // by a computer opponent. `promotion` is optional; when omitted on a
+  // promoting move, the player is prompted as usual.
+  applyMove({ from, to, promotion } = {}) {
+    if (this.game.game_over()) return false;
+    const move = this.#makeMove(from, to, promotion);
+    if (!move) return false;
+    this.selectedSquare = null;
+    this.legalTargets = [];
+    this.render();
+    return true;
+  }
+
+  #makeMove(from, to, promotion) {
     const moveOptions = { from, to };
     if (this.#isPromotion(from, to)) {
-      moveOptions.promotion = this.#promptPromotionPiece();
+      moveOptions.promotion = promotion || this.#promptPromotionPiece();
     }
 
     const move = this.game.move(moveOptions);
@@ -108,6 +121,8 @@ export class Board {
       }
       this.onGameOver(reason);
     }
+
+    return move;
   }
 
   render() {

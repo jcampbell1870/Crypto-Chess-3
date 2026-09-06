@@ -33,6 +33,27 @@
 
     <section class="panel" id="game-panel" style="max-width: 520px;">
       <h2>Chess Board</h2>
+      <div class="ai-controls">
+        <label class="status-row">
+          <input type="checkbox" id="vs-computer" />
+          Play vs Computer
+        </label>
+        <label class="status-row">
+          Difficulty:
+          <select id="ai-difficulty" disabled>
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </label>
+        <label class="status-row">
+          Play as:
+          <select id="ai-side" disabled>
+            <option value="w" selected>White</option>
+            <option value="b">Black</option>
+          </select>
+        </label>
+      </div>
       <p class="status-row" id="turn-status">White to move</p>
       <p class="status-row" id="game-status"></p>
       <div id="board" role="grid" aria-label="Chess board"></div>
@@ -42,7 +63,8 @@
 
   <footer>
     <p>
-      Two players share this device to play locally. Complete a game to
+      Two players share this device to play locally, or enable "Play vs
+      Computer" to challenge the built-in AI opponent. Complete a game to
       unlock the Arcade1870 reward claim. Served by a
       <a href="https://render.com/" target="_blank" rel="noopener noreferrer">Render</a>
       web service.
