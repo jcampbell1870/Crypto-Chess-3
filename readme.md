@@ -52,7 +52,8 @@ Configure these Render environment variables:
   rewarded, default `4`
 - `REWARD_SIGNER_PRIVATE_KEY`: private key for the dedicated reward signer
 - `REWARD_SIGNER_ADDRESS`: optional signer address check; when set, it must be
-  the address derived from `REWARD_SIGNER_PRIVATE_KEY`
+  the address derived from `REWARD_SIGNER_PRIVATE_KEY`. A mismatch causes the
+  service to fail during startup.
 - `ALLOWED_ORIGINS`: optional comma-separated allowed browser origins, added
   on top of the built-in defaults (`https://www.cryptochess.org` and
   `https://cryptochess.org`, the GitHub Pages production domains). Use this
