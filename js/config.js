@@ -20,8 +20,7 @@ export const CONFIG = {
   // rewardVaultAddress and a compatible rewardIssuerUrl, never the private key.
   rewardVaultAddress: '0x1e4f6e4a382adbdb662733a19ae773d3ab8f497d',
   // The game is currently published from GitHub Pages, so reward requests
-  // must go to the Render service rather than the static site's origin. Keep
-  // this URL in sync with PUBLIC_REWARD_ISSUER_URL in render.yaml.
+  // must go to the Render service rather than the static site's origin.
   rewardIssuerUrl: 'https://crypto-chess.onrender.com/api/reward-claim',
 };
 

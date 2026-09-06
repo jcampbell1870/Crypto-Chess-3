@@ -22,9 +22,6 @@ services:
         value: 18
       - key: MIN_REWARD_PLIES
         value: 4
-      - key: PUBLIC_REWARD_ISSUER_URL
-        # Keep this value in sync with js/config.js for GitHub Pages.
-        value: https://crypto-chess.onrender.com/api/reward-claim
       - key: REWARD_SIGNER_PRIVATE_KEY
         sync: false
       - key: ALLOWED_ORIGINS
