@@ -23,6 +23,9 @@ const claimTtlSeconds = Number(process.env.CLAIM_TTL_SECONDS || 600);
 const minClaimIntervalMs = Number(process.env.MIN_CLAIM_INTERVAL_MS || 60 * 60 * 1000);
 const minRewardPlies = Number(process.env.MIN_REWARD_PLIES || 4);
 const configuredExpectedSigner = process.env.REWARD_SIGNER_ADDRESS || '';
+if (process.env.RENDER && !ethers.isAddress(rewardVaultAddress)) {
+  throw new Error('REWARD_VAULT_ADDRESS must be the deployed Arcade1870RewardVault address.');
+}
 if (configuredExpectedSigner && !ethers.isAddress(configuredExpectedSigner)) {
   throw new Error(
     'REWARD_SIGNER_ADDRESS must be the Ethereum address derived from REWARD_SIGNER_PRIVATE_KEY.'
@@ -220,7 +223,9 @@ async function handleRewardClaim(request, response) {
       }
     );
   } catch {
-    sendJson(response, 503, { error: 'Reward claim signing failed. Verify the signer, vault, and chain configuration.' }, origin);
+    sendJson(response, 503, {
+      error: 'EIP-712 reward signing failed. Verify the signer, vault address, and chain ID configuration.',
+    }, origin);
     return;
   }
 
