@@ -4,10 +4,9 @@ import { createHash } from 'node:crypto';
 import { createServer } from 'node:http';
 import { extname, join, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import ethersPkg from 'ethers';
+import { ethers } from 'ethers';
 import { Chess } from './js/vendor/chess.js';
 
-const { ethers } = ethersPkg;
 const rootDir = fileURLToPath(new URL('.', import.meta.url));
 const port = Number(process.env.PORT || 3000);
 const tokenAddress =
@@ -116,7 +115,7 @@ async function handleRewardClaim(request, response) {
     return;
   }
 
-  if (!ethers.utils.isAddress(rewardVaultAddress)) {
+  if (!ethers.isAddress(rewardVaultAddress)) {
     sendJson(response, 503, { error: 'Reward vault is not configured.' }, origin);
     return;
   }
@@ -136,7 +135,7 @@ async function handleRewardClaim(request, response) {
   }
 
   const recipient = body.recipient;
-  if (!ethers.utils.isAddress(recipient)) {
+  if (!ethers.isAddress(recipient)) {
     sendJson(response, 400, { error: 'A valid recipient address is required.' }, origin);
     return;
   }
@@ -153,7 +152,7 @@ async function handleRewardClaim(request, response) {
     return;
   }
 
-  const normalizedRecipient = ethers.utils.getAddress(recipient);
+  const normalizedRecipient = ethers.getAddress(recipient);
   const now = Date.now();
   const lastClaimAt = recentClaims.get(normalizedRecipient) || 0;
   if (now - lastClaimAt < minClaimIntervalMs) {
@@ -161,8 +160,8 @@ async function handleRewardClaim(request, response) {
     return;
   }
 
-  const amount = ethers.utils.parseUnits(rewardAmount, tokenDecimals);
-  const nonce = ethers.BigNumber.from(now).mul(1000).add(nonceCounter++).toString();
+  const amount = ethers.parseUnits(rewardAmount, tokenDecimals);
+  const nonce = BigInt(now) * 1000n + BigInt(nonceCounter++);
   const deadline = Math.floor(now / 1000) + claimTtlSeconds;
   const signer = new ethers.Wallet(privateKey);
   const expectedSigner = process.env.REWARD_SIGNER_ADDRESS;
@@ -172,7 +171,7 @@ async function handleRewardClaim(request, response) {
     return;
   }
 
-  const signature = await signer._signTypedData(
+  const signature = await signer.signTypedData(
     {
       name: 'Arcade1870RewardVault',
       version: '1',
@@ -197,7 +196,7 @@ async function handleRewardClaim(request, response) {
 
   recentClaims.set(normalizedRecipient, now);
   claimedGames.add(gameHash);
-  sendJson(response, 200, { amount: amount.toString(), nonce, deadline, signature }, origin);
+  sendJson(response, 200, { amount: amount.toString(), nonce: nonce.toString(), deadline, signature }, origin);
 }
 
 function configModule() {
