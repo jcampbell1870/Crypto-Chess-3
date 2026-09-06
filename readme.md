@@ -48,7 +48,12 @@ Configure these Render environment variables:
 - `MIN_REWARD_PLIES`: minimum half-moves before a completed game can be
   rewarded, default `4`
 - `REWARD_SIGNER_PRIVATE_KEY`: private key for the dedicated reward signer
-- `ALLOWED_ORIGINS`: optional comma-separated allowed browser origins
+- `ALLOWED_ORIGINS`: optional comma-separated allowed browser origins, added
+  on top of the built-in defaults (`https://www.cryptochess.org` and
+  `https://cryptochess.org`, the GitHub Pages production domains). Use this
+  to allow additional origins (e.g. a GitHub Pages preview domain or
+  `localhost` for local testing — `localhost`/`127.0.0.1` are always allowed
+  automatically)
 
 Never put owner or signer private keys in `js/config.js`; the Render service
 generates the public runtime config from environment variables.
