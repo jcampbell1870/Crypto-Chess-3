@@ -1,15 +1,28 @@
 services:
   - type: web
     name: crypto-chess
-    env: static
-    buildCommand: ''
-    staticPublishPath: .
+    env: node
+    plan: free
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
     envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: TOKEN_ADDRESS
+        value: 0x8eddD4edea39c5B5f77662453600F53A202EE47C
+      - key: CHAIN_ID
+        value: 1
+      - key: CHAIN_NAME
+        value: Ethereum Mainnet
       - key: REWARD_VAULT_ADDRESS
         sync: false
       - key: REWARD_AMOUNT
-        sync: false
+        value: 10
+      - key: TOKEN_DECIMALS
+        value: 18
+      - key: MIN_REWARD_PLIES
+        value: 4
       - key: REWARD_SIGNER_PRIVATE_KEY
         sync: false
-      - key: GAME_VERIFICATION_SECRET
-        generateValue: true
+      - key: ALLOWED_ORIGINS
+        sync: false

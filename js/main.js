@@ -29,6 +29,7 @@ const wallet = new Wallet({
 
 const token = new Token(wallet);
 let rewardEligible = false;
+let rewardGame = null;
 
 function updateWalletUI() {
   if (wallet.isConnected()) {
@@ -87,7 +88,7 @@ els.claimBtn.addEventListener('click', async () => {
   els.claimStatus.textContent = 'Confirm the transaction in MetaMask…';
   els.claimBtn.disabled = true;
   try {
-    const txHash = await token.claimPlayReward();
+    const txHash = await token.claimPlayReward(rewardGame);
     els.claimStatus.textContent = `Reward claimed! Tx: ${txHash.slice(0, 10)}…`;
     rewardEligible = false;
     await refreshBalance();
@@ -106,6 +107,10 @@ const board = new Board(els.board, {
     els.gameStatus.textContent = reason;
     els.turnStatus.textContent = 'Game over';
     rewardEligible = true;
+    rewardGame = {
+      pgn: board.game.pgn(),
+      fen: board.game.fen(),
+    };
     if (wallet.isConnected() && wallet.isOnExpectedNetwork() && token.isRewardVaultConfigured()) {
       els.claimBtn.disabled = false;
     }
@@ -120,6 +125,7 @@ const board = new Board(els.board, {
 els.newGameBtn.addEventListener('click', () => {
   board.reset();
   rewardEligible = false;
+  rewardGame = null;
   els.turnStatus.textContent = 'White to move';
   els.gameStatus.textContent = '';
   els.claimStatus.textContent = '';
