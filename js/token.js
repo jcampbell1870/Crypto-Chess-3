@@ -43,20 +43,21 @@ export class Token {
     return ethers.utils.formatUnits(raw, this.decimals);
   }
 
-  async claimPlayReward() {
+  async claimPlayReward(game) {
     if (!this.isRewardVaultConfigured()) {
       throw new Error('Reward vault setup is incomplete. Configure its address and issuer URL.');
     }
 
-    const issuerUrl = new URL(CONFIG.rewardIssuerUrl);
-    if (issuerUrl.protocol !== 'https:') {
+    const issuerUrl = new URL(CONFIG.rewardIssuerUrl, window.location.origin);
+    const isLocalIssuer = ['localhost', '127.0.0.1'].includes(issuerUrl.hostname);
+    if (issuerUrl.protocol !== 'https:' && !isLocalIssuer) {
       throw new Error('The reward issuer must use HTTPS.');
     }
 
-    const response = await fetch(issuerUrl, {
+    const response = await fetch(issuerUrl.toString(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ recipient: this.wallet.address }),
+      body: JSON.stringify({ recipient: this.wallet.address, game }),
     });
     if (!response.ok) {
       throw new Error('The reward issuer could not authorize this completed game.');

@@ -15,8 +15,8 @@ be published directly with GitHub Pages.
 - Connect your MetaMask wallet ([ethers.js](https://docs.ethers.org/v5/),
   vendored locally in `js/vendor/`) to see your address and Arcade1870
   balance, and to claim a reward after finishing a game.
-- No backend or bundler required — works entirely from static files, ready
-  for GitHub Pages.
+- Render web service deployment serves the game and signs reward-vault claims
+  from server-side environment variables.
 
 ## Playing locally
 
@@ -30,15 +30,28 @@ python3 -m http.server 8000
 Then visit `http://localhost:8000` in a browser with the MetaMask extension
 installed.
 
-## Deploying to GitHub Pages
+## Deploying to Render
 
-This repo includes a GitHub Actions workflow
-(`.github/workflows/static.yml`) that publishes the site to GitHub Pages on
-every push to `main`. Make sure **Settings → Pages → Build and
-deployment → Source** is set to **GitHub Actions** (this is the default
-once the workflow has run once). Alternatively, you can use the classic
-**Deploy from a branch** option pointed at `main` / `/ (root)`, since the
-site is fully static.
+This repo includes [`render.yaml`](render.yaml) for a Render Node web service.
+The service serves the browser game and exposes `POST /api/reward-claim` for
+the reward vault claim signature.
+
+Configure these Render environment variables:
+
+- `TOKEN_ADDRESS`: Arcade1870 (ARC)
+  `0x8eddD4edea39c5B5f77662453600F53A202EE47C`
+- `CHAIN_ID`: `1`
+- `CHAIN_NAME`: `Ethereum Mainnet`
+- `REWARD_VAULT_ADDRESS`: deployed `Arcade1870RewardVault` address
+- `REWARD_AMOUNT`: ARC reward amount, default `10`
+- `TOKEN_DECIMALS`: ARC decimals, default `18`
+- `MIN_REWARD_PLIES`: minimum half-moves before a completed game can be
+  rewarded, default `4`
+- `REWARD_SIGNER_PRIVATE_KEY`: private key for the dedicated reward signer
+- `ALLOWED_ORIGINS`: optional comma-separated allowed browser origins
+
+Never put owner or signer private keys in `js/config.js`; the Render service
+generates the public runtime config from environment variables.
 
 ## Arcade1870 (ARC) token reward vault
 
@@ -65,15 +78,14 @@ a game, and an unrestricted public faucet would be immediately drainable.
 2. Record the deployed vault address, then transfer ARC to that address using
    the normal ERC-20 `transfer` function. The vault address is safe to publish;
    never put the owner or signer private keys in this repository or website.
-3. Run a reward-issuer service that verifies a completed game and creates an
-   EIP-712 signature for:
+3. Run this Render web service to create an EIP-712 signature for:
    `Claim(address recipient,uint256 amount,uint256 nonce,uint256 deadline)`.
    The EIP-712 domain must be named `Arcade1870RewardVault`, use version `1`,
    the deployment chain ID, and the vault address.
-4. Set `rewardVaultAddress` and the HTTPS `rewardIssuerUrl` in
-   [`js/config.js`](js/config.js). The issuer receives
-   `{ "recipient": "<connected MetaMask address>" }` and must return JSON with
-   `amount`, `nonce`, `deadline`, and a 65-byte `signature`. The game
+4. Set `REWARD_VAULT_ADDRESS` and `REWARD_SIGNER_PRIVATE_KEY` in Render. The
+   issuer receives the connected MetaMask address and completed game details,
+   then returns JSON with `amount`, `nonce`, `deadline`, and a 65-byte
+   `signature`. The game
    simulates the vault claim before showing MetaMask, then submits
    `claim(amount, nonce, deadline, signature)`. Players pay the gas and
    receive ARC directly in their connected wallet.

@@ -1,0 +1,15 @@
+{
+  "name": "crypto-chess-3",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "ethers": "5.7.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

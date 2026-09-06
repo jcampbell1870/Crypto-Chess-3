@@ -1,9 +1,7 @@
 // Configuration for the Arcade1870 token reward integration.
 //
-// This app is a static site (designed for GitHub Pages) with no backend, so
-// it can never hold a treasury private key to *send* tokens to players.
-// Rewards are claimed from a separately deployed, pre-funded vault. The
-// reward issuer signs a claim only after it has verified game completion.
+// The Render web service can replace this module at runtime with values from
+// public environment variables. These defaults keep local static hosting usable.
 export const CONFIG = {
   // Arcade1870 (ARC) token contract, as provided in the project brief.
   tokenAddress: '0x8eddD4edea39c5B5f77662453600F53A202EE47C',
@@ -21,7 +19,7 @@ export const CONFIG = {
   // readme.md. Other games should point their own config at the same
   // rewardVaultAddress and a compatible rewardIssuerUrl, never the private key.
   rewardVaultAddress: '0x1e4f6e4a382adbdb662733a19ae773d3ab8f497d',
-  rewardIssuerUrl: 'https://crypto-chess-vp7o.onrender.com',
+  rewardIssuerUrl: '/api/reward-claim',
 };
 
 // Minimal ERC-20 ABI used for reading token metadata and balances.
