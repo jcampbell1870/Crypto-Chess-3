@@ -54,11 +54,28 @@ export class Token {
       throw new Error('The reward issuer must use HTTPS.');
     }
 
-    const response = await fetch(issuerUrl.toString(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ recipient: this.wallet.address, game }),
-    });
+    let response;
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      try {
+        response = await fetch(issuerUrl.toString(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ recipient: this.wallet.address, game }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
+    } catch (error) {
+      const reason = error.name === 'AbortError'
+        ? 'The reward service took too long to respond.'
+        : 'The reward service is unavailable or blocked by browser CORS settings.';
+      throw new Error(
+        `${reason} Verify that the Render reward service is deployed and running.`
+      );
+    }
     if (!response.ok) {
       let issuerError = '';
       try {
