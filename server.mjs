@@ -13,6 +13,8 @@ const tokenAddress =
   process.env.TOKEN_ADDRESS || '0x8eddD4edea39c5B5f77662453600F53A202EE47C';
 const chainId = Number(process.env.CHAIN_ID || 1);
 const chainName = process.env.CHAIN_NAME || 'Ethereum Mainnet';
+// There is no safe default for the vault: this must be the address of the
+// deployed Arcade1870RewardVault, not the ARC token contract.
 const rewardVaultAddress = process.env.REWARD_VAULT_ADDRESS || '';
 const rewardIssuerUrl = process.env.PUBLIC_REWARD_ISSUER_URL || '/api/reward-claim';
 const rewardAmount = process.env.REWARD_AMOUNT || '10';
@@ -20,6 +22,17 @@ const tokenDecimals = Number(process.env.TOKEN_DECIMALS || 18);
 const claimTtlSeconds = Number(process.env.CLAIM_TTL_SECONDS || 600);
 const minClaimIntervalMs = Number(process.env.MIN_CLAIM_INTERVAL_MS || 60 * 60 * 1000);
 const minRewardPlies = Number(process.env.MIN_REWARD_PLIES || 4);
+const configuredExpectedSigner = process.env.REWARD_SIGNER_ADDRESS || '';
+if (process.env.RENDER && !ethers.isAddress(rewardVaultAddress)) {
+  throw new Error(
+    'REWARD_VAULT_ADDRESS must be set to the deployed Arcade1870RewardVault address.'
+  );
+}
+if (configuredExpectedSigner && !ethers.isAddress(configuredExpectedSigner)) {
+  throw new Error(
+    'REWARD_SIGNER_ADDRESS must be the Ethereum address derived from REWARD_SIGNER_PRIVATE_KEY.'
+  );
+}
 // The game is published from GitHub Pages under these production domains
 // (see CNAME). Reward claims are fetched cross-origin from the Render
 // issuer, so these must always be allowed even if ALLOWED_ORIGINS hasn't
@@ -174,40 +187,61 @@ async function handleRewardClaim(request, response) {
   const amount = ethers.parseUnits(rewardAmount, tokenDecimals);
   const nonce = BigInt(now) * 1000n + BigInt(nonceCounter++);
   const deadline = Math.floor(now / 1000) + claimTtlSeconds;
-  const signer = new ethers.Wallet(privateKey);
-  const expectedSigner = process.env.REWARD_SIGNER_ADDRESS;
-
-  if (expectedSigner && signer.address.toLowerCase() !== expectedSigner.toLowerCase()) {
+  let signer;
+  try {
+    signer = new ethers.Wallet(privateKey);
+  } catch {
+    // ethers throws here for malformed or unsupported private-key formats.
+    sendJson(response, 503, { error: 'Reward signer private key is invalid.' }, origin);
+    return;
+  }
+  if (configuredExpectedSigner && signer.address.toLowerCase() !== configuredExpectedSigner.toLowerCase()) {
     sendJson(response, 503, { error: 'Reward signer does not match configuration.' }, origin);
     return;
   }
 
-  const signature = await signer.signTypedData(
-    {
-      name: 'Arcade1870RewardVault',
-      version: '1',
-      chainId,
-      verifyingContract: rewardVaultAddress,
-    },
-    {
-      Claim: [
-        { name: 'recipient', type: 'address' },
-        { name: 'amount', type: 'uint256' },
-        { name: 'nonce', type: 'uint256' },
-        { name: 'deadline', type: 'uint256' },
-      ],
-    },
-    {
-      recipient: normalizedRecipient,
-      amount,
-      nonce,
-      deadline,
-    }
-  );
+  let signature;
+  try {
+    signature = await signer.signTypedData(
+      {
+        name: 'Arcade1870RewardVault',
+        version: '1',
+        chainId,
+        verifyingContract: rewardVaultAddress,
+      },
+      {
+        Claim: [
+          { name: 'recipient', type: 'address' },
+          { name: 'amount', type: 'uint256' },
+          { name: 'nonce', type: 'uint256' },
+          { name: 'deadline', type: 'uint256' },
+        ],
+      },
+      {
+        recipient: normalizedRecipient,
+        amount,
+        nonce,
+        deadline,
+      }
+    );
+  } catch (error) {
+    console.error('Reward claim signing failed:', error.message);
+    sendJson(response, 503, {
+      error: 'EIP-712 reward signing failed. Verify the signer, vault address, and chain ID configuration.',
+    }, origin);
+    return;
+  }
 
   recentClaims.set(normalizedRecipient, now);
   claimedGames.add(gameHash);
-  sendJson(response, 200, { amount: amount.toString(), nonce: nonce.toString(), deadline, signature }, origin);
+  sendJson(response, 200, {
+    amount: amount.toString(),
+    nonce: nonce.toString(),
+    deadline,
+    signature,
+    vaultAddress: rewardVaultAddress,
+    chainId,
+  }, origin);
 }
 
 function configModule() {
