@@ -85,17 +85,19 @@ export class Token {
     } catch {
       throw new Error('The reward issuer returned a malformed claim.');
     }
+    const vaultAddress = claim.vaultAddress || CONFIG.rewardVaultAddress;
     if (
-      !ethers.utils.isAddress(CONFIG.rewardVaultAddress) ||
+      !ethers.utils.isAddress(vaultAddress) ||
       !ethers.utils.isHexString(claim.signature, 65) ||
       amount.isZero() ||
-      deadline.lt(Math.floor(Date.now() / 1000))
+      deadline.lt(Math.floor(Date.now() / 1000)) ||
+      Number(claim.chainId) !== CONFIG.chainId
     ) {
-      throw new Error('The reward issuer returned an invalid or expired claim.');
+      throw new Error('The reward issuer returned an invalid, expired, or mismatched claim.');
     }
 
     const vault = new ethers.Contract(
-      CONFIG.rewardVaultAddress,
+      vaultAddress,
       REWARD_VAULT_ABI,
       this.wallet.signer
     );

@@ -234,7 +234,14 @@ async function handleRewardClaim(request, response) {
 
   recentClaims.set(normalizedRecipient, now);
   claimedGames.add(gameHash);
-  sendJson(response, 200, { amount: amount.toString(), nonce: nonce.toString(), deadline, signature }, origin);
+  sendJson(response, 200, {
+    amount: amount.toString(),
+    nonce: nonce.toString(),
+    deadline,
+    signature,
+    vaultAddress: rewardVaultAddress,
+    chainId,
+  }, origin);
 }
 
 function configModule() {
