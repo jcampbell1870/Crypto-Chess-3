@@ -43,6 +43,21 @@ export class Token {
     return ethers.utils.formatUnits(raw, this.decimals);
   }
 
+  async addToWallet() {
+    if (!window.ethereum?.request) return false;
+    return window.ethereum.request({
+      method: 'wallet_watchAsset',
+      params: {
+        type: 'ERC20',
+        options: {
+          address: CONFIG.tokenAddress,
+          symbol: this.symbol,
+          decimals: this.decimals,
+        },
+      },
+    });
+  }
+
   async claimPlayReward(game) {
     if (!this.isRewardVaultConfigured()) {
       throw new Error('Reward vault setup is incomplete. Configure its address and issuer URL.');

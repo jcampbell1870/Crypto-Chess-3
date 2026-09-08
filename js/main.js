@@ -95,9 +95,21 @@ els.claimBtn.addEventListener('click', async () => {
   els.claimBtn.disabled = true;
   try {
     const txHash = await token.claimPlayReward(rewardGame);
-    els.claimStatus.textContent = `Reward claimed! Tx: ${txHash.slice(0, 10)}…`;
     rewardEligible = false;
-    await refreshBalance();
+    let walletAssetAdded = false;
+    try {
+      walletAssetAdded = await token.addToWallet();
+    } catch (error) {
+      console.warn('Unable to add Arcade1870 to MetaMask:', error);
+    }
+    try {
+      await refreshBalance();
+    } catch (error) {
+      console.warn('Unable to refresh Arcade1870 balance:', error);
+    }
+    els.claimStatus.textContent = walletAssetAdded
+      ? `Reward claimed and ARC added to MetaMask! Tx: ${txHash.slice(0, 10)}…`
+      : `Reward claimed! Add ARC token ${CONFIG.tokenAddress} to MetaMask if it is not visible. Tx: ${txHash.slice(0, 10)}…`;
   } catch (error) {
     els.claimStatus.textContent = error.message;
     els.claimBtn.disabled = false;
