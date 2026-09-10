@@ -120,12 +120,16 @@ export class Token {
     const vaultAddress = claim.vaultAddress || CONFIG.rewardVaultAddress;
     if (
       !ethers.utils.isAddress(vaultAddress) ||
+      vaultAddress.toLowerCase() !== CONFIG.rewardVaultAddress.toLowerCase() ||
       !ethers.utils.isHexString(claim.signature, 65) ||
       amount.isZero() ||
       deadline.lt(Math.floor(Date.now() / 1000)) ||
       Number(claim.chainId) !== CONFIG.chainId
     ) {
-      throw new Error('The reward issuer returned an invalid, expired, or mismatched claim.');
+      throw new Error(
+        'The reward issuer returned an invalid, expired, or mismatched claim. ' +
+        'Verify the vault address, token, and network configuration.'
+      );
     }
 
     const vault = new ethers.Contract(
