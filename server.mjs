@@ -10,7 +10,11 @@ import { Chess } from './js/vendor/chess.js';
 const rootDir = fileURLToPath(new URL('.', import.meta.url));
 const port = Number(process.env.PORT || 3000);
 const tokenAddress =
-  process.env.TOKEN_ADDRESS || '0x8eddD4edea39c5B5f77662453600F53A202EE47C';
+  process.env.REWARD_TOKEN || process.env.TOKEN_ADDRESS ||
+  '0x8eddD4edea39c5B5f77662453600F53A202EE47C';
+if (!ethers.isAddress(tokenAddress)) {
+  throw new Error('REWARD_TOKEN must be a valid ERC-20 token address.');
+}
 const chainId = Number(process.env.CHAIN_ID || 1);
 const chainName = process.env.CHAIN_NAME || 'Ethereum Mainnet';
 // There is no safe default for the vault: this must be the address of the

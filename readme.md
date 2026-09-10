@@ -41,7 +41,7 @@ the reward vault claim signature.
 
 Configure these Render environment variables:
 
-- `TOKEN_ADDRESS`: Arcade1870 (ARC)
+- `REWARD_TOKEN`: Arcade1870 (ARC)
   `0x8eddD4edea39c5B5f77662453600F53A202EE47C`
 - `CHAIN_ID`: `1`
 - `CHAIN_NAME`: `Ethereum Mainnet`
