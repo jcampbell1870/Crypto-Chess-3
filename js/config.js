@@ -35,5 +35,6 @@ export const ERC20_ABI = [
 ];
 
 export const REWARD_VAULT_ABI = [
+  'function rewardToken() view returns (address)',
   'function claim(uint256 amount, uint256 nonce, uint256 deadline, bytes signature)',
 ];

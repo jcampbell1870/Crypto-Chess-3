@@ -133,6 +133,27 @@ export class Token {
       REWARD_VAULT_ABI,
       this.wallet.signer
     );
+    let vaultToken;
+    try {
+      vaultToken = await vault.rewardToken();
+    } catch {
+      throw new Error(
+        `The configured reward vault ${vaultAddress} could not be read on ${CONFIG.chainName}. ` +
+        'Verify the vault address and network before claiming.'
+      );
+    }
+    if (vaultToken.toLowerCase() !== CONFIG.tokenAddress.toLowerCase()) {
+      throw new Error(
+        `The reward vault uses token ${vaultToken}, not the configured ARC token ${CONFIG.tokenAddress}.`
+      );
+    }
+    const vaultBalance = await this.#getContract().then((contract) => contract.balanceOf(vaultAddress));
+    if (vaultBalance.lt(amount)) {
+      throw new Error(
+        `The reward vault has insufficient ARC to pay this reward. ` +
+        `Fund ${vaultAddress} before claiming.`
+      );
+    }
     await vault.callStatic.claim(amount, nonce, deadline, claim.signature);
     const tx = await vault.claim(amount, nonce, deadline, claim.signature);
     const receipt = await tx.wait();
