@@ -136,6 +136,29 @@ export class Token {
     await vault.callStatic.claim(amount, nonce, deadline, claim.signature);
     const tx = await vault.claim(amount, nonce, deadline, claim.signature);
     const receipt = await tx.wait();
+    const tokenInterface = new ethers.utils.Interface(ERC20_ABI);
+    const transfer = receipt.logs
+      .filter((log) => log.address.toLowerCase() === CONFIG.tokenAddress.toLowerCase())
+      .map((log) => {
+        try {
+          return tokenInterface.parseLog(log);
+        } catch {
+          return null;
+        }
+      })
+      .find((event) =>
+        event?.name === 'Transfer' &&
+        event.args.from.toLowerCase() === vaultAddress.toLowerCase() &&
+        event.args.to.toLowerCase() === this.wallet.address.toLowerCase() &&
+        event.args.value.eq(amount)
+      );
+    if (!transfer) {
+      throw new Error(
+        `The transaction was confirmed, but no ARC transfer to your wallet was detected. ` +
+        `Verify that the vault at ${vaultAddress} uses token ${CONFIG.tokenAddress}. ` +
+        `Transaction: ${receipt.transactionHash}`
+      );
+    }
     return receipt.transactionHash;
   }
 }
