@@ -18,7 +18,7 @@ export const CONFIG = {
   // (e.g. Crypto Trivia) — see "Sharing the vault across multiple games" in
   // readme.md. Other games should point their own config at the same
   // rewardVaultAddress and a compatible rewardIssuerUrl, never the private key.
-  rewardVaultAddress: '0x1e4f6e4a382adbdb662733a19ae773d3ab8f497d',
+  rewardVaultAddress: '0xA2827f20DcF600e3f7ae69802A565FE3aA01c831',
   // The game is currently published from GitHub Pages, so reward requests
   // must go to the Render service rather than the static site's origin.
   rewardIssuerUrl: 'https://crypto-chess.onrender.com/api/reward-claim',
