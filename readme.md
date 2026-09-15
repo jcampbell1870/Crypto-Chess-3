@@ -18,8 +18,9 @@ be published directly with GitHub Pages.
 - Connect your MetaMask wallet ([ethers.js](https://docs.ethers.org/v5/),
   vendored locally in `js/vendor/`) to see your address and Arcade1870
   balance, and to claim a reward after finishing a game.
-- Render web service deployment serves the game and signs reward-vault claims
-  from server-side environment variables.
+- GitHub Pages deployment serves the static game directly from this repository.
+- Optional reward-issuer backend signs reward-vault claims from server-side
+  environment variables.
 
 ## Playing locally
 
@@ -33,13 +34,25 @@ python3 -m http.server 8000
 Then visit `http://localhost:8000` in a browser with the MetaMask extension
 installed.
 
-## Deploying to Render
+## Deploying to GitHub Pages
 
-This repo includes [`render.yaml`](render.yaml) for a Render Node web service.
-The service serves the browser game and exposes `POST /api/reward-claim` for
-the reward vault claim signature.
+This repository includes a GitHub Actions workflow at
+`.github/workflows/static.yml` that publishes the site to GitHub Pages on
+pushes to `main`.
 
-Configure these Render environment variables:
+To deploy via GitHub Pages:
+
+1. In GitHub, open **Settings → Pages** for this repository.
+2. Under **Build and deployment**, set **Source** to **GitHub Actions**.
+3. Push changes to `main` (or run the workflow manually from the Actions tab).
+
+## Reward issuer backend (optional, required for claiming ARC rewards)
+
+GitHub Pages is static hosting, so it cannot hold private keys or sign
+EIP-712 claims. To support ARC reward claims, run the backend issuer
+(`server.mjs`) on a trusted Node host and expose `POST /api/reward-claim`.
+
+Configure these backend environment variables:
 
 - `TOKEN_ADDRESS`: Arcade1870 (ARC)
   `0x8eddD4edea39c5B5f77662453600F53A202EE47C`
@@ -61,8 +74,8 @@ Configure these Render environment variables:
   `localhost` for local testing — `localhost`/`127.0.0.1` are always allowed
   automatically)
 
-Never put owner or signer private keys in `js/config.js`; the Render service
-generates the public runtime config from environment variables.
+Never put owner or signer private keys in `js/config.js`; keep them only in
+your backend host's secret store.
 
 `REWARD_VAULT_ADDRESS` must be the deployed `Arcade1870RewardVault` contract,
 not the ARC token address. The ARC token address is
@@ -95,11 +108,13 @@ a game, and an unrestricted public faucet would be immediately drainable.
 2. Record the deployed vault address, then transfer ARC to that address using
    the normal ERC-20 `transfer` function. The vault address is safe to publish;
    never put the owner or signer private keys in this repository or website.
-3. Run this Render web service to create an EIP-712 signature for:
+3. Run the backend issuer service to create an EIP-712 signature for:
    `Claim(address recipient,uint256 amount,uint256 nonce,uint256 deadline)`.
    The EIP-712 domain must be named `Arcade1870RewardVault`, use version `1`,
    the deployment chain ID, and the vault address.
-4. Set `REWARD_VAULT_ADDRESS` and `REWARD_SIGNER_PRIVATE_KEY` in Render. The
+4. Set `REWARD_VAULT_ADDRESS` and `REWARD_SIGNER_PRIVATE_KEY` in your backend
+   host.
+   The
    issuer receives the connected MetaMask address and completed game details,
    then returns JSON with `amount`, `nonce`, `deadline`, and a 65-byte
    `signature`. The game
@@ -133,8 +148,8 @@ To let another game reuse this treasury:
   domain (`Arcade1870RewardVault`, version `1`, this vault's chain ID and
   address). The vault only validates the signature, not the origin game.
 - The reward-signer private key and `REWARD_SIGNER_PRIVATE_KEY` /
-  `GAME_VERIFICATION_SECRET` values stay in this service's Render
-  environment (or the equivalent secret store for a dedicated issuer); never
-  copy them into the other game's repo, config file, or public site.
+  `GAME_VERIFICATION_SECRET` values stay in your issuer service environment
+  (or equivalent secret store for a dedicated issuer); never copy them into
+  the other game's repo, config file, or public site.
 - Confirm the other game prompts MetaMask to switch to the same `chainId`
   the vault and token are deployed on.
