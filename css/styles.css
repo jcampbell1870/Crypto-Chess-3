@@ -5,8 +5,8 @@
   --accent-dark: #0284c7;
   --text: #e2e8f0;
   --muted: #94a3b8;
-  --light-square: #ffffff;
-  --dark-square: #00ffff;
+  --light-square: white;
+  --dark-square: aqua;
   --danger: #f87171;
   --success: #4ade80;
 }
@@ -168,11 +168,13 @@ button:disabled {
 }
 
 .piece.white-piece {
-  color: #000000;
+  color: black;
+  -webkit-text-fill-color: black;
 }
 
 .piece.black-piece {
-  color: #ffff00;
+  color: yellow;
+  -webkit-text-fill-color: yellow;
 }
 
 #claim-status {
