@@ -148,7 +148,7 @@ export class Board {
         const piece = this.game.get(square);
         if (piece) {
           const pieceEl = document.createElement('span');
-          pieceEl.className = 'piece';
+          pieceEl.className = `piece ${piece.color === 'w' ? 'white-piece' : 'black-piece'}`;
           pieceEl.textContent = UNICODE_PIECES[piece.color][piece.type];
           if (piece.type === 'k' && piece.color === inCheckColor) {
             pieceEl.classList.add('in-check');
