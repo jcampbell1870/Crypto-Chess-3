@@ -25,6 +25,7 @@ pub enum RewardError {
   WalletDisconnected,
   GameIncomplete,
   GameTooShort,
+  RewardIneligible,
 }
 
 pub struct ClaimService {
@@ -61,7 +62,7 @@ impl ClaimService {
       return Err(RewardError::GameTooShort);
     }
     if !board.has_rewardable_outcome() {
-      return Err(RewardError::GameIncomplete);
+      return Err(RewardError::RewardIneligible);
     }
 
     return Ok(RewardClaim {
