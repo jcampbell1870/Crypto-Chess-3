@@ -96,6 +96,7 @@ impl Board {
     self.plies = self.plies + 1;
     self.turn = opposite(self.turn);
     self.fen = mv.resulting_fen;
+    self.outcome = GameOutcome::InProgress;
     if self.pgn == "" {
       self.pgn = mv.san;
     } else {

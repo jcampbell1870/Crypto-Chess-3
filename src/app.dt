@@ -73,6 +73,7 @@ impl CryptoChessApp {
       return;
     }
     self.board.apply_move(mv);
+    self.reward_claimed = false;
     match outcome {
       Some(result) => {
         self.board.finish(result);
@@ -98,6 +99,7 @@ impl CryptoChessApp {
         match maybe_reply {
           Some(reply) => {
             self.board.apply_move(reply.mv);
+            self.reward_claimed = false;
             match reply.outcome {
               Some(outcome) => {
                 self.board.finish(outcome);
