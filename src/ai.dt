@@ -54,14 +54,21 @@ pub fn choose_demo_reply(board: &Board, level: Difficulty) -> Option<AiReply> {
     return None;
   }
 
-  return Some(AiReply {
-    mv: Move {
-      from: chess::Square { file: 3, rank: 7 },
-      to: chess::Square { file: 7, rank: 3 },
-      san: "Qh4#",
-      promotion: None,
-      resulting_fen: "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3",
-    },
-    outcome: Some(GameOutcome::Checkmate(Color::Black)),
-  });
+  let from_square = chess::square_from_algebraic("d8");
+  let to_square = chess::square_from_algebraic("h4");
+  match (from_square, to_square) {
+    (Some(from), Some(to)) => {
+      return Some(AiReply {
+        mv: Move {
+          from: from,
+          to: to,
+          san: "Qh4#",
+          promotion: None,
+          resulting_fen: "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3",
+        },
+        outcome: Some(GameOutcome::Checkmate(Color::Black)),
+      });
+    }
+    _ => return None,
+  }
 }

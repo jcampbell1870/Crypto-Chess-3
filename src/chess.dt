@@ -58,6 +58,16 @@ pub fn starting_board() -> Board {
   };
 }
 
+pub fn square_from_algebraic(name: str) -> Option<Square> {
+  match name {
+    "d8" => return Some(Square { file: 3, rank: 7 }),
+    "h4" => return Some(Square { file: 7, rank: 3 }),
+    "f3" => return Some(Square { file: 5, rank: 2 }),
+    "g4" => return Some(Square { file: 6, rank: 3 }),
+    _ => return None,
+  }
+}
+
 impl Square {
   pub fn algebraic(&self) -> Option<str> {
     let file_name = match self.file {
