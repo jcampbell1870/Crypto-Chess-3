@@ -13,7 +13,7 @@ pub struct CryptoChessApp {
   rewards: ClaimService,
   mode: GameMode,
   has_recorded_claim: bool,
-  claimed_game_pgn: str,
+  claimed_game_id: u64,
   turn_status: str,
   game_status: str,
   claim_status: str,
@@ -26,7 +26,7 @@ pub fn new_app(board: Board, wallet: WalletProfile, reward_config: RewardConfig)
     rewards: ClaimService { config: reward_config },
     mode: GameMode::LocalTwoPlayer,
     has_recorded_claim: false,
-    claimed_game_pgn: "",
+    claimed_game_id: 0,
     turn_status: "White to move",
     game_status: "",
     claim_status: "Connect your wallet to claim rewards",
@@ -125,12 +125,12 @@ impl CryptoChessApp {
   }
 
   pub fn finalize_reward(&mut self) -> Result<RewardClaim, RewardError> {
-    if self.has_recorded_claim && self.claimed_game_pgn == self.board.pgn_text() {
+    if self.has_recorded_claim && self.claimed_game_id == self.board.game_id() {
       return Err(RewardError::RewardAlreadyClaimed);
     }
     let claim = self.rewards.issue_claim(&self.wallet, &self.board)?;
     self.has_recorded_claim = true;
-    self.claimed_game_pgn = self.board.pgn_text();
+    self.claimed_game_id = self.board.game_id();
     self.claim_status = "Reward issued for this completed game";
     return Ok(claim);
   }

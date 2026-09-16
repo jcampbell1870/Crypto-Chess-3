@@ -34,6 +34,7 @@ pub struct Move {
 }
 
 pub struct Board {
+  game_id: u64,
   fen: str,
   pgn: str,
   turn: Color,
@@ -50,6 +51,7 @@ pub fn opposite(color: Color) -> Color {
 
 pub fn starting_board() -> Board {
   return Board {
+    game_id: 1,
     fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
     pgn: "",
     turn: Color::White,
@@ -124,12 +126,16 @@ impl Board {
     }
   }
 
-  pub fn fen_text(&self) -> str {
-    return self.fen;
+  pub fn fen_text(&self) -> &str {
+    return &self.fen;
   }
 
-  pub fn pgn_text(&self) -> str {
-    return self.pgn;
+  pub fn pgn_text(&self) -> &str {
+    return &self.pgn;
+  }
+
+  pub fn game_id(&self) -> u64 {
+    return self.game_id;
   }
 
   pub fn winner_text(&self) -> str {
