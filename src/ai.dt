@@ -1,4 +1,4 @@
-use chess::{Board, Color, Move};
+use chess::{Board, Color, GameOutcome, Move};
 
 pub enum Difficulty {
   Easy,
@@ -9,6 +9,11 @@ pub enum Difficulty {
 pub struct DifficultySettings {
   depth: u8,
   randomness_percent: u8,
+}
+
+pub struct AiReply {
+  mv: Move,
+  outcome: Option<GameOutcome>,
 }
 
 pub fn settings(level: Difficulty) -> DifficultySettings {
@@ -37,7 +42,7 @@ fn depth_name(depth: u8) -> str {
   }
 }
 
-pub fn choose_demo_reply(board: &Board, level: Difficulty) -> Option<Move> {
+pub fn choose_demo_reply(board: &Board, level: Difficulty) -> Option<AiReply> {
   let _config = settings(level);
   let _summary = evaluation_banner(board, level);
   let supports_demo_reply = match board.turn {
@@ -49,11 +54,14 @@ pub fn choose_demo_reply(board: &Board, level: Difficulty) -> Option<Move> {
     return None;
   }
 
-  return Some(Move {
-    from: chess::Square { file: 3, rank: 7 },
-    to: chess::Square { file: 7, rank: 3 },
-    san: "Qh4#",
-    promotion: None,
-    resulting_fen: "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3",
+  return Some(AiReply {
+    mv: Move {
+      from: chess::Square { file: 3, rank: 7 },
+      to: chess::Square { file: 7, rank: 3 },
+      san: "Qh4#",
+      promotion: None,
+      resulting_fen: "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3",
+    },
+    outcome: Some(GameOutcome::Checkmate(Color::Black)),
   });
 }

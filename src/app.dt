@@ -95,14 +95,21 @@ impl CryptoChessApp {
         let maybe_reply = choose_demo_reply(&self.board, level);
         match maybe_reply {
           Some(reply) => {
-            let computer_color = match self.board.turn {
-              Color::White => Color::White,
-              Color::Black => Color::Black,
-            };
-            self.board.apply_move(reply);
-            self.board.finish(GameOutcome::Checkmate(computer_color));
-            self.turn_status = "Game over";
-            self.game_status = self.board.winner_text();
+            self.board.apply_move(reply.mv);
+            match reply.outcome {
+              Some(outcome) => {
+                self.board.finish(outcome);
+                self.turn_status = "Game over";
+                self.game_status = self.board.winner_text();
+              }
+              None => {
+                self.turn_status = match self.board.turn {
+                  Color::White => "White to move",
+                  Color::Black => "Black to move",
+                };
+                self.game_status = "Computer played a demo response";
+              }
+            }
           }
           None => {
             self.game_status = "No demo AI response is available for this position";
