@@ -5,6 +5,12 @@ integration and Arcade1870 (ARC) ERC-20 token rewards for playing. It is a
 plain static site (HTML/CSS/JavaScript, no build step or backend) so it can
 be published directly with GitHub Pages.
 
+This repository now also includes a **Dark Tower Language rewrite scaffold**
+at [`DarkTower.toml`](DarkTower.toml) and [`src/`](src/). The DTL version
+captures the chess, AI, wallet, and reward-flow domain model in Dark Tower
+source files while the current JavaScript/Render app remains the deployed
+runtime.
+
 ## Features
 
 - Full chess rules (legal move generation, check/checkmate/stalemate
@@ -20,6 +26,26 @@ be published directly with GitHub Pages.
   balance, and to claim a reward after finishing a game.
 - Render web service deployment serves the game and signs reward-vault claims
   from server-side environment variables.
+- Dark Tower rewrite scaffold with:
+  - `src/chess.dt` for board, move, and outcome types
+  - `src/ai.dt` for the built-in computer-opponent configuration
+  - `src/reward.dt` for ARC reward eligibility and claim modeling
+  - `src/app.dt` / `src/main.dt` for the game flow entry point
+
+## Dark Tower rewrite
+
+The DTL rewrite is designed around the current Dark Tower specification and
+prototype toolchain:
+
+- Manifest: `DarkTower.toml`
+- Entry point: `src/main.dt`
+- Modules: `src/chess.dt`, `src/ai.dt`, `src/reward.dt`, `src/app.dt`
+
+The current Dark Tower CLI prototype only executes `print("...");`
+statements, so this rewrite is best understood as a source-level port of the
+game architecture rather than a drop-in replacement for the deployed web app.
+The production browser UI, MetaMask integration, and Render reward issuer
+remain in JavaScript today.
 
 ## Playing locally
 

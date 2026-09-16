@@ -1,0 +1,73 @@
+use ai::{choose_demo_reply, Difficulty};
+use chess::{Board, Color, GameOutcome, Move, Square};
+use reward::{ClaimService, RewardClaim, RewardConfig, RewardError, WalletProfile};
+
+pub enum GameMode {
+  LocalTwoPlayer,
+  VersusComputer(Difficulty, Color),
+}
+
+pub struct CryptoChessApp {
+  board: Board,
+  wallet: WalletProfile,
+  rewards: ClaimService,
+  mode: GameMode,
+  turn_status: str,
+  game_status: str,
+  claim_status: str,
+}
+
+pub fn new_app(board: Board, wallet: WalletProfile, reward_config: RewardConfig) -> CryptoChessApp {
+  return CryptoChessApp {
+    board: board,
+    wallet: wallet,
+    rewards: ClaimService { config: reward_config },
+    mode: GameMode::LocalTwoPlayer,
+    turn_status: "White to move",
+    game_status: "",
+    claim_status: "Connect your wallet to claim rewards",
+  };
+}
+
+impl CryptoChessApp {
+  pub fn connect_wallet(&mut self, address: str) {
+    self.wallet.address = address;
+    self.wallet.connected = true;
+    self.claim_status = "Wallet connected";
+  }
+
+  pub fn enable_computer(&mut self, level: Difficulty, human_color: Color) {
+    self.mode = GameMode::VersusComputer(level, human_color);
+  }
+
+  pub fn apply_human_move(&mut self, san: str, fen: str) {
+    let mv = Move {
+      from: Square { file: 5, rank: 1 },
+      to: Square { file: 5, rank: 2 },
+      san: san,
+      promotion: None,
+      resulting_fen: fen,
+    };
+    self.board.apply_move(mv);
+    self.turn_status = "Black to move";
+  }
+
+  pub fn maybe_play_ai_turn(&mut self) {
+    match self.mode {
+      GameMode::VersusComputer(level, _) => {
+        let reply = choose_demo_reply(&self.board, level);
+        self.board.apply_move(reply);
+        self.board.finish(GameOutcome::Checkmate(Color::Black));
+        self.turn_status = "Game over";
+        self.game_status = self.board.winner_text();
+      }
+      GameMode::LocalTwoPlayer => {}
+    }
+  }
+
+  pub fn finalize_reward(&mut self) -> Result<RewardClaim, RewardError> {
+    let claim = self.rewards.issue_claim(&self.wallet, &self.board)?;
+    self.claim_status = "Reward ready to claim";
+    return Ok(claim);
+  }
+}

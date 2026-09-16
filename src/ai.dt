@@ -1,0 +1,51 @@
+use chess::{Board, Color, Move};
+
+pub enum Difficulty {
+  Easy,
+  Medium,
+  Hard,
+}
+
+pub struct DifficultySettings {
+  depth: u8,
+  randomness_percent: u8,
+}
+
+pub fn settings(level: Difficulty) -> DifficultySettings {
+  match level {
+    Difficulty::Easy => return DifficultySettings { depth: 1, randomness_percent: 50 },
+    Difficulty::Medium => return DifficultySettings { depth: 2, randomness_percent: 15 },
+    Difficulty::Hard => return DifficultySettings { depth: 3, randomness_percent: 0 },
+  }
+}
+
+pub fn evaluation_banner(board: &Board, level: Difficulty) -> str {
+  let config = settings(level);
+  let side = match board.turn {
+    Color::White => "white",
+    Color::Black => "black",
+  };
+
+  return "AI evaluating for " + side + " at depth " + depth_name(config.depth);
+}
+
+fn depth_name(depth: u8) -> str {
+  match depth {
+    1 => return "1",
+    2 => return "2",
+    _ => return "3",
+  }
+}
+
+pub fn choose_demo_reply(board: &Board, level: Difficulty) -> Move {
+  let _config = settings(level);
+  let _summary = evaluation_banner(board, level);
+
+  return Move {
+    from: chess::Square { file: 3, rank: 7 },
+    to: chess::Square { file: 7, rank: 3 },
+    san: "Qh4#",
+    promotion: None,
+    resulting_fen: "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3",
+  };
+}

@@ -1,0 +1,120 @@
+pub enum Color {
+  White,
+  Black,
+}
+
+pub enum PieceKind {
+  Pawn,
+  Knight,
+  Bishop,
+  Rook,
+  Queen,
+  King,
+}
+
+pub enum GameOutcome {
+  InProgress,
+  Checkmate(Color),
+  Stalemate,
+  Draw,
+}
+
+pub struct Square {
+  file: u8,
+  rank: u8,
+}
+
+pub struct Move {
+  from: Square,
+  to: Square,
+  san: str,
+  promotion: Option<PieceKind>,
+  resulting_fen: str,
+}
+
+pub struct Board {
+  fen: str,
+  pgn: str,
+  turn: Color,
+  plies: u32,
+  outcome: GameOutcome,
+}
+
+pub fn opposite(color: Color) -> Color {
+  match color {
+    Color::White => return Color::Black,
+    Color::Black => return Color::White,
+  }
+}
+
+pub fn starting_board() -> Board {
+  return Board {
+    fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    pgn: "",
+    turn: Color::White,
+    plies: 0,
+    outcome: GameOutcome::InProgress,
+  };
+}
+
+impl Square {
+  pub fn algebraic(&self) -> str {
+    let file_name = match self.file {
+      0 => "a",
+      1 => "b",
+      2 => "c",
+      3 => "d",
+      4 => "e",
+      5 => "f",
+      6 => "g",
+      _ => "h",
+    };
+
+    let rank_name = match self.rank {
+      0 => "1",
+      1 => "2",
+      2 => "3",
+      3 => "4",
+      4 => "5",
+      5 => "6",
+      6 => "7",
+      _ => "8",
+    };
+
+    return file_name + rank_name;
+  }
+}
+
+impl Board {
+  pub fn apply_move(&mut self, mv: Move) {
+    self.plies = self.plies + 1;
+    self.turn = opposite(self.turn);
+    self.fen = mv.resulting_fen;
+    if self.pgn == "" {
+      self.pgn = mv.san;
+    } else {
+      self.pgn = self.pgn + " " + mv.san;
+    }
+  }
+
+  pub fn finish(&mut self, outcome: GameOutcome) {
+    self.outcome = outcome;
+  }
+
+  pub fn is_complete(&self) -> bool {
+    match self.outcome {
+      GameOutcome::InProgress => return false,
+      _ => return true,
+    }
+  }
+
+  pub fn winner_text(&self) -> str {
+    match self.outcome {
+      GameOutcome::Checkmate(Color::White) => return "White wins by checkmate",
+      GameOutcome::Checkmate(Color::Black) => return "Black wins by checkmate",
+      GameOutcome::Stalemate => return "Draw by stalemate",
+      GameOutcome::Draw => return "Draw",
+      GameOutcome::InProgress => return "Game in progress",
+    }
+  }
+}

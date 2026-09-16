@@ -1,0 +1,71 @@
+use chess::Board;
+
+pub struct RewardConfig {
+  token_address: str,
+  chain_id: u32,
+  chain_name: str,
+  reward_vault_address: str,
+  reward_amount: str,
+  min_reward_plies: u32,
+}
+
+pub struct WalletProfile {
+  address: str,
+  connected: bool,
+}
+
+pub struct RewardClaim {
+  recipient: str,
+  amount: str,
+  chain_id: u32,
+  summary: str,
+}
+
+pub enum RewardError {
+  WalletDisconnected,
+  GameIncomplete,
+  GameTooShort,
+}
+
+pub struct ClaimService {
+  config: RewardConfig,
+}
+
+pub fn default_reward_config() -> RewardConfig {
+  return RewardConfig {
+    token_address: "0x8eddD4edea39c5B5f77662453600F53A202EE47C",
+    chain_id: 1,
+    chain_name: "Ethereum Mainnet",
+    reward_vault_address: "0x1e4f6e4a382adbdb662733a19ae773d3ab8f497d",
+    reward_amount: "10 ARC",
+    min_reward_plies: 4,
+  };
+}
+
+pub fn disconnected_wallet() -> WalletProfile {
+  return WalletProfile {
+    address: "",
+    connected: false,
+  };
+}
+
+impl ClaimService {
+  pub fn issue_claim(&self, wallet: &WalletProfile, board: &Board) -> Result<RewardClaim, RewardError> {
+    if !wallet.connected {
+      return Err(RewardError::WalletDisconnected);
+    }
+    if !board.is_complete() {
+      return Err(RewardError::GameIncomplete);
+    }
+    if board.plies < self.config.min_reward_plies {
+      return Err(RewardError::GameTooShort);
+    }
+
+    return Ok(RewardClaim {
+      recipient: wallet.address,
+      amount: self.config.reward_amount,
+      chain_id: self.config.chain_id,
+      summary: board.winner_text(),
+    });
+  }
+}

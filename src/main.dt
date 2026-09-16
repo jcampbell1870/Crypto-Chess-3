@@ -1,0 +1,33 @@
+mod chess;
+mod ai;
+mod reward;
+mod app;
+
+use ai::Difficulty;
+use app::new_app;
+use chess::{Color, starting_board};
+use reward::{default_reward_config, disconnected_wallet};
+
+fn main() -> Result<(), reward::RewardError> {
+  let board = starting_board();
+  let wallet = disconnected_wallet();
+  let rewards = default_reward_config();
+  let mut app = new_app(board, wallet, rewards);
+
+  print("Crypto Chess for Dark Tower\n");
+  print("Starting a local game with Arcade1870 rewards enabled.\n");
+  app.connect_wallet("0x1234567890abcdef1234567890abcdef12345678");
+  print("Wallet connected.\n");
+  app.enable_computer(Difficulty::Medium, Color::White);
+  print("Play vs Computer enabled on Medium.\n");
+  app.apply_human_move("f3", "rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1");
+  print("White plays f3.\n");
+  app.apply_human_move("g4", "rnb1kbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKBNR b KQkq - 0 2");
+  print("White overextends with g4.\n");
+  app.maybe_play_ai_turn();
+  print("Computer responds with Qh4#.\n");
+  let _claim = app.finalize_reward()?;
+  print("Reward prepared for the connected wallet.\n");
+  print("Arcade1870 claim summary: 10 ARC on Ethereum Mainnet.\n");
+  return Ok(());
+}
