@@ -53,7 +53,9 @@ pub fn disconnected_wallet() -> WalletProfile {
 
 impl ClaimService {
   pub fn is_eligible_for_reward(&self, board: &Board) -> bool {
-    return board.is_complete() && board.has_resolved_outcome();
+    return board.is_complete()
+      && board.has_resolved_outcome()
+      && board.plies >= self.config.min_reward_plies;
   }
 
   pub fn issue_claim(&self, wallet: &WalletProfile, board: &Board) -> Result<RewardClaim, RewardError> {

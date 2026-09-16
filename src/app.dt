@@ -130,7 +130,7 @@ impl CryptoChessApp {
     }
     let claim = self.rewards.issue_claim(&self.wallet, &self.board)?;
     self.reward_claimed = true;
-    self.claim_status = "Reward ready to claim";
+    self.claim_status = "Reward issued for this completed game";
     return Ok(claim);
   }
 }
