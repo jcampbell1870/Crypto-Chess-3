@@ -17,6 +17,7 @@ pub enum GameOutcome {
   Checkmate(Color),
   Stalemate,
   Draw,
+  Aborted,
 }
 
 pub struct Square {
@@ -113,12 +114,17 @@ impl Board {
     }
   }
 
+  pub fn fen_text(&self) -> str {
+    return self.fen;
+  }
+
   pub fn winner_text(&self) -> str {
     match self.outcome {
       GameOutcome::Checkmate(Color::White) => return "White wins by checkmate",
       GameOutcome::Checkmate(Color::Black) => return "Black wins by checkmate",
       GameOutcome::Stalemate => return "Draw by stalemate",
       GameOutcome::Draw => return "Draw",
+      GameOutcome::Aborted => return "Game abandoned",
       GameOutcome::InProgress => return "Game in progress",
     }
   }
@@ -129,6 +135,7 @@ impl Board {
       GameOutcome::Checkmate(Color::Black) => return true,
       GameOutcome::Stalemate => return true,
       GameOutcome::Draw => return true,
+      GameOutcome::Aborted => return false,
       GameOutcome::InProgress => return false,
     }
   }
