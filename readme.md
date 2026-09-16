@@ -38,7 +38,7 @@ The DTL rewrite is designed around the current Dark Tower specification and
 prototype toolchain:
 
 - Manifest: `DarkTower.toml`
-- Entry point: `src/main.dt`
+- Print-only entry point demo: `src/main.dt`
 - Modules: `src/chess.dt`, `src/ai.dt`, `src/reward.dt`, `src/app.dt`
 
 The current Dark Tower CLI prototype only executes `print("...");`
@@ -46,6 +46,10 @@ statements, so this rewrite is best understood as a source-level port of the
 game architecture rather than a drop-in replacement for the deployed web app.
 The production browser UI, MetaMask integration, and Render reward issuer
 remain in JavaScript today.
+
+`src/main.dt` stays compatible with that prototype by limiting itself to a
+print-only overview, while the other DTL modules capture the intended game
+structure for a fuller Dark Tower toolchain.
 
 ## Playing locally
 
