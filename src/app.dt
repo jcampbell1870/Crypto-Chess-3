@@ -1,5 +1,5 @@
 use ai::{choose_demo_reply, Difficulty};
-use chess::{Board, Color, GameOutcome, Move, Square};
+use chess::{Board, Color, GameOutcome, Move};
 use reward::{ClaimService, RewardClaim, RewardConfig, RewardError, WalletProfile};
 
 pub enum GameMode {
@@ -40,16 +40,12 @@ impl CryptoChessApp {
     self.mode = GameMode::VersusComputer(level, human_color);
   }
 
-  pub fn apply_human_move(&mut self, san: str, fen: str) {
-    let mv = Move {
-      from: Square { file: 5, rank: 1 },
-      to: Square { file: 5, rank: 2 },
-      san: san,
-      promotion: None,
-      resulting_fen: fen,
-    };
+  pub fn apply_human_move(&mut self, mv: Move) {
     self.board.apply_move(mv);
-    self.turn_status = "Black to move";
+    self.turn_status = match self.board.turn {
+      Color::White => "White to move",
+      Color::Black => "Black to move",
+    };
   }
 
   pub fn maybe_play_ai_turn(&mut self) {
