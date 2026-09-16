@@ -122,4 +122,14 @@ impl Board {
       GameOutcome::InProgress => return "Game in progress",
     }
   }
+
+  pub fn has_rewardable_outcome(&self) -> bool {
+    match self.outcome {
+      GameOutcome::Checkmate(Color::White) => return true,
+      GameOutcome::Checkmate(Color::Black) => return true,
+      GameOutcome::Stalemate => return true,
+      GameOutcome::Draw => return true,
+      GameOutcome::InProgress => return false,
+    }
+  }
 }

@@ -1,5 +1,5 @@
 use ai::{choose_demo_reply, Difficulty};
-use chess::{Board, Color, GameOutcome, Move};
+use chess::{Board, Color, Move};
 use reward::{ClaimService, RewardClaim, RewardConfig, RewardError, WalletProfile};
 
 pub enum GameMode {
@@ -30,6 +30,32 @@ pub fn new_app(board: Board, wallet: WalletProfile, reward_config: RewardConfig)
 }
 
 impl CryptoChessApp {
+  fn is_human_turn(&self) -> bool {
+    match self.mode {
+      GameMode::LocalTwoPlayer => return true,
+      GameMode::VersusComputer(_, human_color) => {
+        match (self.board.turn, human_color) {
+          (Color::White, Color::White) => return true,
+          (Color::Black, Color::Black) => return true,
+          _ => return false,
+        }
+      }
+    }
+  }
+
+  fn is_computer_turn(&self) -> bool {
+    match self.mode {
+      GameMode::LocalTwoPlayer => return false,
+      GameMode::VersusComputer(_, human_color) => {
+        match (self.board.turn, human_color) {
+          (Color::White, Color::White) => return false,
+          (Color::Black, Color::Black) => return false,
+          _ => return true,
+        }
+      }
+    }
+  }
+
   pub fn connect_wallet(&mut self, address: str) {
     self.wallet.address = address;
     self.wallet.connected = true;
@@ -41,6 +67,9 @@ impl CryptoChessApp {
   }
 
   pub fn apply_human_move(&mut self, mv: Move) {
+    if self.board.is_complete() || !self.is_human_turn() {
+      return;
+    }
     self.board.apply_move(mv);
     self.turn_status = match self.board.turn {
       Color::White => "White to move",
@@ -50,16 +79,17 @@ impl CryptoChessApp {
 
   pub fn maybe_play_ai_turn(&mut self) {
     match self.mode {
-      GameMode::VersusComputer(level, human_color) => {
+      GameMode::VersusComputer(level, _) => {
+        if self.board.is_complete() || !self.is_computer_turn() {
+          return;
+        }
         let reply = choose_demo_reply(&self.board, level);
         self.board.apply_move(reply);
-        let winner = match human_color {
-          Color::White => Color::Black,
-          Color::Black => Color::White,
+        self.turn_status = match self.board.turn {
+          Color::White => "White to move",
+          Color::Black => "Black to move",
         };
-        self.board.finish(GameOutcome::Checkmate(winner));
-        self.turn_status = "Game over";
-        self.game_status = self.board.winner_text();
+        self.game_status = "Computer played a demo response";
       }
       GameMode::LocalTwoPlayer => {}
     }

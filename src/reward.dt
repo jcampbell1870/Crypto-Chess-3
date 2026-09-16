@@ -60,6 +60,9 @@ impl ClaimService {
     if board.plies < self.config.min_reward_plies {
       return Err(RewardError::GameTooShort);
     }
+    if !board.has_rewardable_outcome() {
+      return Err(RewardError::GameIncomplete);
+    }
 
     return Ok(RewardClaim {
       recipient: wallet.address,
