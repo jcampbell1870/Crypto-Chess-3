@@ -55,16 +55,16 @@ impl CryptoChessApp {
           _ => return true,
         }
       }
+    }
+  }
 
-      fn has_claim_for_game(&self, game_id: u64) -> bool {
-        for claimed_id in self.claimed_game_ids {
-          if claimed_id == game_id {
-            return true;
-          }
-        }
-        return false;
+  fn has_claim_for_game(&self, game_id: u64) -> bool {
+    for claimed_id in self.claimed_game_ids {
+      if claimed_id == game_id {
+        return true;
       }
     }
+    return false;
   }
 
   pub fn connect_wallet(&mut self, address: str) {
