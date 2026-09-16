@@ -96,7 +96,6 @@ impl Board {
     self.plies = self.plies + 1;
     self.turn = opposite(self.turn);
     self.fen = mv.resulting_fen;
-    self.outcome = GameOutcome::InProgress;
     if self.pgn == "" {
       self.pgn = mv.san;
     } else {
@@ -117,6 +116,10 @@ impl Board {
 
   pub fn fen_text(&self) -> str {
     return self.fen;
+  }
+
+  pub fn pgn_text(&self) -> str {
+    return self.pgn;
   }
 
   pub fn winner_text(&self) -> str {
