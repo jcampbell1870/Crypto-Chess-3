@@ -26,6 +26,7 @@ pub enum RewardError {
   GameIncomplete,
   GameTooShort,
   RewardIneligible,
+  RewardAlreadyClaimed,
 }
 
 pub struct ClaimService {
@@ -51,6 +52,10 @@ pub fn disconnected_wallet() -> WalletProfile {
 }
 
 impl ClaimService {
+  pub fn is_eligible_for_reward(&self, board: &Board) -> bool {
+    return board.is_complete() && board.has_resolved_outcome();
+  }
+
   pub fn issue_claim(&self, wallet: &WalletProfile, board: &Board) -> Result<RewardClaim, RewardError> {
     if !wallet.connected {
       return Err(RewardError::WalletDisconnected);
@@ -61,7 +66,7 @@ impl ClaimService {
     if board.plies < self.config.min_reward_plies {
       return Err(RewardError::GameTooShort);
     }
-    if !board.has_rewardable_outcome() {
+    if !self.is_eligible_for_reward(board) {
       return Err(RewardError::RewardIneligible);
     }
 

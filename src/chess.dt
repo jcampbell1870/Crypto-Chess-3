@@ -129,7 +129,7 @@ impl Board {
     }
   }
 
-  pub fn has_rewardable_outcome(&self) -> bool {
+  pub fn has_resolved_outcome(&self) -> bool {
     match self.outcome {
       GameOutcome::Checkmate(Color::White) => return true,
       GameOutcome::Checkmate(Color::Black) => return true,
