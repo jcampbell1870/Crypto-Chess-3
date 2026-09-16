@@ -58,30 +58,35 @@ pub fn starting_board() -> Board {
 }
 
 impl Square {
-  pub fn algebraic(&self) -> str {
+  pub fn algebraic(&self) -> Option<str> {
     let file_name = match self.file {
-      0 => "a",
-      1 => "b",
-      2 => "c",
-      3 => "d",
-      4 => "e",
-      5 => "f",
-      6 => "g",
-      _ => "h",
+      0 => Some("a"),
+      1 => Some("b"),
+      2 => Some("c"),
+      3 => Some("d"),
+      4 => Some("e"),
+      5 => Some("f"),
+      6 => Some("g"),
+      7 => Some("h"),
+      _ => None,
     };
 
     let rank_name = match self.rank {
-      0 => "1",
-      1 => "2",
-      2 => "3",
-      3 => "4",
-      4 => "5",
-      5 => "6",
-      6 => "7",
-      _ => "8",
+      0 => Some("1"),
+      1 => Some("2"),
+      2 => Some("3"),
+      3 => Some("4"),
+      4 => Some("5"),
+      5 => Some("6"),
+      6 => Some("7"),
+      7 => Some("8"),
+      _ => None,
     };
 
-    return file_name + rank_name;
+    match (file_name, rank_name) {
+      (Some(file), Some(rank)) => return Some(file + rank),
+      _ => return None,
+    }
   }
 }
 

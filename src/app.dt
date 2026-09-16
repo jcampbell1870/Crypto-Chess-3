@@ -50,10 +50,14 @@ impl CryptoChessApp {
 
   pub fn maybe_play_ai_turn(&mut self) {
     match self.mode {
-      GameMode::VersusComputer(level, _) => {
+      GameMode::VersusComputer(level, human_color) => {
         let reply = choose_demo_reply(&self.board, level);
         self.board.apply_move(reply);
-        self.board.finish(GameOutcome::Checkmate(Color::Black));
+        let winner = match human_color {
+          Color::White => Color::Black,
+          Color::Black => Color::White,
+        };
+        self.board.finish(GameOutcome::Checkmate(winner));
         self.turn_status = "Game over";
         self.game_status = self.board.winner_text();
       }
