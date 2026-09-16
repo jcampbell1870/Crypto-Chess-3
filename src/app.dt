@@ -1,5 +1,5 @@
 use ai::{choose_demo_reply, Difficulty};
-use chess::{Board, Color, Move};
+use chess::{Board, Color, GameOutcome, Move};
 use reward::{ClaimService, RewardClaim, RewardConfig, RewardError, WalletProfile};
 
 pub enum GameMode {
@@ -66,11 +66,20 @@ impl CryptoChessApp {
     self.mode = GameMode::VersusComputer(level, human_color);
   }
 
-  pub fn apply_human_move(&mut self, mv: Move) {
+  pub fn apply_human_move(&mut self, mv: Move, outcome: Option<GameOutcome>) {
     if self.board.is_complete() || !self.is_human_turn() {
       return;
     }
     self.board.apply_move(mv);
+    match outcome {
+      Some(result) => {
+        self.board.finish(result);
+        self.game_status = self.board.winner_text();
+        self.turn_status = "Game over";
+        return;
+      }
+      None => {}
+    }
     self.turn_status = match self.board.turn {
       Color::White => "White to move",
       Color::Black => "Black to move",
@@ -86,12 +95,14 @@ impl CryptoChessApp {
         let maybe_reply = choose_demo_reply(&self.board, level);
         match maybe_reply {
           Some(reply) => {
-            self.board.apply_move(reply);
-            self.turn_status = match self.board.turn {
-              Color::White => "White to move",
-              Color::Black => "Black to move",
+            let computer_color = match self.board.turn {
+              Color::White => Color::White,
+              Color::Black => Color::Black,
             };
-            self.game_status = "Computer played a demo response";
+            self.board.apply_move(reply);
+            self.board.finish(GameOutcome::Checkmate(computer_color));
+            self.turn_status = "Game over";
+            self.game_status = self.board.winner_text();
           }
           None => {
             self.game_status = "No demo AI response is available for this position";
