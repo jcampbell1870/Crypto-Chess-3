@@ -17,8 +17,10 @@ export class Board {
     this.legalTargets = [];
     this.onGameOver = onGameOver || (() => {});
     this.onMove = onMove || (() => {});
+    this.interactive = true;
 
     this.el.addEventListener('click', (event) => {
+      if (!this.interactive) return;
       const squareEl = event.target.closest('[data-square]');
       if (!squareEl) return;
       this.#handleSquareClick(squareEl.dataset.square);
@@ -29,6 +31,28 @@ export class Board {
 
   reset() {
     this.game.reset();
+    this.selectedSquare = null;
+    this.legalTargets = [];
+    this.render();
+  }
+
+  setInteractive(enabled) {
+    this.interactive = Boolean(enabled);
+    this.el.classList.toggle('board-disabled', !this.interactive);
+  }
+
+  loadState({ pgn, fen } = {}) {
+    const nextGame = new Chess();
+    if (typeof pgn === 'string' && pgn.trim()) {
+      if (!nextGame.load_pgn(pgn)) {
+        throw new Error('Invalid PGN state.');
+      }
+    } else if (typeof fen === 'string' && fen.trim()) {
+      if (!nextGame.load(fen)) {
+        throw new Error('Invalid FEN state.');
+      }
+    }
+    this.game = nextGame;
     this.selectedSquare = null;
     this.legalTargets = [];
     this.render();

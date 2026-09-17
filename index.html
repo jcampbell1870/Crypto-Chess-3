@@ -31,9 +31,60 @@
       <p class="token-address">Reward vault: <span id="reward-vault-address">Not configured</span></p>
     </section>
 
-    <section class="panel" id="game-panel" style="max-width: 520px;">
-      <h2>Chess Board</h2>
-      <div class="ai-controls">
+    <section class="panel lobby-panel" id="online-panel">
+      <div class="lobby-header">
+        <div>
+          <p class="eyebrow">GG Poker inspired lobby</p>
+          <h2>Online Arena</h2>
+        </div>
+        <span class="lobby-badge">Live</span>
+      </div>
+      <p class="status-row">Save a screen name, sit at a heads-up table, or register for an 8-player knockout.</p>
+      <label class="stacked-label" for="player-name">Screen name</label>
+      <div class="input-row">
+        <input id="player-name" type="text" maxlength="24" placeholder="CryptoCrusher" />
+        <button id="save-player">Save</button>
+      </div>
+      <p class="status-row" id="online-status">Browsing as a guest. Save a screen name to play online.</p>
+
+      <div class="lobby-grid">
+        <section class="lobby-section">
+          <div class="section-heading">
+            <h3>Heads-Up Tables</h3>
+            <button id="create-match" class="secondary-button">Open Table</button>
+          </div>
+          <p class="section-copy">Quick online one vs one matches.</p>
+          <div id="match-list" class="lobby-list"></div>
+        </section>
+
+        <section class="lobby-section">
+          <div class="section-heading">
+            <h3>8-Player Tournaments</h3>
+            <button id="create-tournament" class="secondary-button">Create Event</button>
+          </div>
+          <p class="section-copy">Single-elimination bracket that launches at 8 players.</p>
+          <div id="tournament-list" class="lobby-list"></div>
+        </section>
+      </div>
+
+      <section class="lobby-section stage-panel">
+        <div class="section-heading">
+          <h3>Tournament Stage</h3>
+          <span id="tournament-stage-status" class="status-pill idle">No tournament selected</span>
+        </div>
+        <div id="tournament-stage" class="stage-shell"></div>
+      </section>
+    </section>
+
+    <section class="panel game-panel">
+      <div class="game-panel-top">
+        <div>
+          <p class="eyebrow">Board</p>
+          <h2>Chess Table</h2>
+        </div>
+        <span id="mode-banner" class="mode-pill">Local Pass-and-Play</span>
+      </div>
+      <div class="ai-controls" id="local-controls">
         <label class="status-row">
           <input type="checkbox" id="vs-computer" />
           Play vs Computer
@@ -54,18 +105,22 @@
           </select>
         </label>
       </div>
+      <p class="status-row" id="opponent-status">Two players share the same device.</p>
       <p class="status-row" id="turn-status">White to move</p>
       <p class="status-row" id="game-status"></p>
       <div id="board" role="grid" aria-label="Chess board"></div>
-      <button id="new-game" style="margin-top: 1rem;">New Game</button>
+      <div class="board-actions">
+        <button id="new-game">New Game</button>
+        <button id="return-local" class="secondary-button" hidden>Back to Local Board</button>
+      </div>
     </section>
   </main>
 
   <footer>
     <p>
-      Two players share this device to play locally, or enable "Play vs
-      Computer" to challenge the built-in AI opponent. Complete a game to
-      unlock the Arcade1870 reward claim. Served by a
+      Play locally, challenge the built-in AI, or jump into the new online arena
+      for heads-up tables and 8-player tournaments. Complete a game to unlock the
+      Arcade1870 reward claim. Served by a
       <a href="https://render.com/" target="_blank" rel="noopener noreferrer">Render</a>
       web service.
     </p>

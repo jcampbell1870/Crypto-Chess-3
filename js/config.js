@@ -19,9 +19,11 @@ export const CONFIG = {
   // readme.md. Other games should point their own config at the same
   // rewardVaultAddress and a compatible rewardIssuerUrl, never the private key.
   rewardVaultAddress: '0x1e4f6e4a382adbdb662733a19ae773d3ab8f497d',
-  // The game is currently published from GitHub Pages, so reward requests
-  // must go to the Render service rather than the static site's origin.
+  // The game is currently published from GitHub Pages, so reward requests and
+  // online lobby traffic must go to the Render service rather than the static
+  // site's origin.
   rewardIssuerUrl: 'https://crypto-chess.onrender.com/api/reward-claim',
+  onlineApiUrl: 'https://crypto-chess.onrender.com/api/online',
 };
 
 // Minimal ERC-20 ABI used for reading token metadata and balances.
