@@ -11,10 +11,11 @@ be published directly with GitHub Pages.
   detection, castling, en passant, promotion) powered by
   [chess.js](https://github.com/jhlywa/chess.js), vendored locally in
   `js/vendor/`.
-- Two players share one device/board to play a local game, or enable
+- Two players share one device/board to play a local game, enable
   "Play vs Computer" to challenge a built-in AI opponent (minimax search
   with alpha-beta pruning over Easy/Medium/Hard difficulty; no external
-  engine or network access required).
+  engine or network access required), or jump into the online arena for
+  heads-up tables and 8-player single-elimination tournaments.
 - Connect your MetaMask wallet ([ethers.js](https://docs.ethers.org/v5/),
   vendored locally in `js/vendor/`) to see your address and Arcade1870
   balance, and to claim a reward after finishing a game.
@@ -33,11 +34,24 @@ python3 -m http.server 8000
 Then visit `http://localhost:8000` in a browser with the MetaMask extension
 installed.
 
+## Online arena
+
+The online multiplayer mode is powered by the Render/Node service rather than
+GitHub Pages. Players save a screen name, open a heads-up table, or register
+for an 8-player single-elimination event from the lobby. Tournament brackets
+auto-start when all 8 seats are filled and progress round-by-round as match
+results come in.
+
+This implementation intentionally keeps state in server memory so it is easy to
+run locally and on a single Render instance. Restarting the service clears open
+tables, tournament lobbies, and player aliases.
+
 ## Deploying to Render
 
 This repo includes [`render.yaml`](render.yaml) for a Render Node web service.
-The service serves the browser game and exposes `POST /api/reward-claim` for
-the reward vault claim signature.
+The service serves the browser game, exposes `POST /api/reward-claim` for
+the reward vault claim signature, and now hosts the in-memory online lobby at
+`/api/online`.
 
 Configure these Render environment variables:
 
