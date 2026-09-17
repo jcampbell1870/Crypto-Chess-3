@@ -880,7 +880,7 @@ async function handleOnlineApi(request, response, url) {
 
     if (request.method === 'POST' && segments[0] === 'matches' && segments[1] && segments[2] === 'move') {
       const body = await readJsonBody(request);
-      const match = applyMoveToStandaloneMatch(segments[1], body.playerId, parseMove(body));
+      const match = applyMoveToStandaloneMatch(requireHeadsUpMatch(segments[1]), body.playerId, parseMove(body));
       sendJson(response, 200, { match: summarizeMatch(match, body.playerId) }, origin, methods);
       return;
     }
