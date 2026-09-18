@@ -382,7 +382,7 @@ function renderTournamentList(tournaments = []) {
         <article class="lobby-card tournament-card">
           <div class="lobby-card-top">
             <div>
-              <p class="lobby-card-kicker">GG Poker Style Event</p>
+              <p class="lobby-card-kicker">Tournament Event</p>
               <h4>${escapeHtml(tournament.name)}</h4>
             </div>
             <span class="status-pill ${escapeHtml(tournament.status)}">${escapeHtml(tournament.statusLabel)}</span>
